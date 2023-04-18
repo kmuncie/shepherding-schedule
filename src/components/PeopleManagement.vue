@@ -1,19 +1,25 @@
 <template>
   <div>
-    <h2>Add a new person</h2>
-    <input v-model="newPersonName" placeholder="Enter name" />
-    <button @click="addNewPerson">Add Person</button>
-    <h2>People List</h2>
-    <ul>
-      <li v-for="person in people" :key="person.id">
-        {{ person.name }}
-        <button @click="confirmRemovePerson(person)">
-          {{ person.confirmRemoval ? 'Confirm Removal' : 'Remove' }}
-        </button>
-      </li>
-    </ul>
+    <h1>People Management</h1>
+
+    <h2>Add Person</h2>
+    <form @submit.prevent="addNewPerson">
+      <div>
+        <label for="name">Name:</label>
+        <input id="name" v-model="newPerson.name" type="text" placeholder="Name" required />
+      </div>
+      <div>
+        <label for="location">Location:</label>
+        <input id="location" v-model="newPerson.location" type="text" placeholder="Location" required />
+      </div>
+      <div>
+        <input id="role" type="checkbox" v-model="newPerson.role" true-value="shepherd" false-value="sheep" />
+        <label for="role">Shepherd</label>
+      </div>
+      <button type="submit">Add Person</button>
+    </form>
   </div>
-</template>
+</template> 
 
 <script lang="ts">
 import { ref } from 'vue';
@@ -21,31 +27,20 @@ import { usePeopleStore } from '@/stores/people';
 
 export default {
   setup() {
+    const newPerson = ref({ name: '', location: '', role: 'shepherd' });
     const peopleStore = usePeopleStore();
-    const newPersonName = ref('');
 
     const addNewPerson = () => {
-      if (newPersonName.value.trim()) {
-        peopleStore.addPerson(newPersonName.value.trim());
-        newPersonName.value = '';
-      }
-    };
-
-    const confirmRemovePerson = (person) => {
-      if (person.confirmRemoval) {
-        peopleStore.deletePerson(person.id);
-      } else {
-        person.confirmRemoval = true;
+      if (newPerson.value.name && newPerson.value.location) {
+        peopleStore.addPerson(newPerson.value.name, newPerson.value.location, newPerson.value.role);
+        newPerson.value = { name: '', location: '', role: 'shepherd' };
       }
     };
 
     return {
-      people: peopleStore.people,
-      newPersonName,
+      newPerson,
       addNewPerson,
-      confirmRemovePerson,
     };
   },
 };
 </script>
-

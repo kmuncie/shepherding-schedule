@@ -1,10 +1,14 @@
 // src/stores/people.ts
 import { defineStore } from 'pinia';
 import { reactive, markRaw } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface Person {
-  id: string;
-  name: string;
+   id: string;
+   name: string;
+   location: string;
+   role: string;
+   confirmRemoval?: boolean;
 }
 
 const PEOPLE_STORAGE_KEY = 'people';
@@ -14,37 +18,29 @@ const getStoredPeople = (): Person[] => {
   return storedPeople ? JSON.parse(storedPeople) : [];
 };
 
-const generateId = (): string => {
-  return `person-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
-};
-
 export const usePeopleStore = defineStore('people', {
   state: () => ({
     people: reactive(getStoredPeople()),
   }),
   actions: {
-    addPerson(name: string) {
+    addPerson(name: string, location: string, role: string) {
       const person: Person = {
-        id: generateId(),
-        name: name,
+          id: uuidv4(),
+          name,
+          location,
+          role,
       };
+
       this.people.push(person);
       localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
     },
-    updatePerson(updatedPerson: Person) {
-      const index = this.people.findIndex((person) => person.id === updatedPerson.id);
+    deletePerson(id: string) {
+      const index = this.people.findIndex((person) => person.id === id);
       if (index !== -1) {
-        this.people[index] = updatedPerson;
+        this.people.splice(index, 1);
         localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
       }
     },
-     deletePerson(id: string) {
-        const index = this.people.findIndex((person) => person.id === id);
-        if (index !== -1) {
-          this.people.splice(index, 1);
-          localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
-        }
-      },
   },
 });
 
