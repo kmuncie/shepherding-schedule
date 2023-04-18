@@ -41,6 +41,21 @@ export const usePeopleStore = defineStore('people', {
         localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
       }
     },
+    exportPeopleData() {
+      const data = JSON.stringify(markRaw(this.people));
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      return url;
+    },
+    importPeopleData(file: File) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const data = JSON.parse(reader.result as string);
+        this.people = reactive(data);
+        localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
+      };
+      reader.readAsText(file);
+    },    
   },
 });
 
