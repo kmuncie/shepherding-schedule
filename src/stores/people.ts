@@ -1,49 +1,50 @@
-// src/store/people.ts
+// src/stores/people.ts
 import { defineStore } from 'pinia';
+import { reactive, markRaw } from 'vue';
 
-interface Person {
-  id: number;
+export interface Person {
+  id: string;
   name: string;
-  role: string;
 }
 
 const PEOPLE_STORAGE_KEY = 'people';
 
-function getStoredPeople(): Person[] {
+const getStoredPeople = (): Person[] => {
   const storedPeople = localStorage.getItem(PEOPLE_STORAGE_KEY);
   return storedPeople ? JSON.parse(storedPeople) : [];
-}
+};
 
-export const usePeopleStore = defineStore({
-  id: 'people',
+const generateId = (): string => {
+  return `person-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+};
 
+export const usePeopleStore = defineStore('people', {
   state: () => ({
-    people: getStoredPeople(),
+    people: reactive(getStoredPeople()),
   }),
-
   actions: {
-    loadPeople() {
-      this.people = getStoredPeople();
-    },
-
-    addPerson(person: Person) {
+    addPerson(name: string) {
+      const person: Person = {
+        id: generateId(),
+        name: name,
+      };
       this.people.push(person);
-      localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(this.people));
+      localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
     },
-
     updatePerson(updatedPerson: Person) {
       const index = this.people.findIndex((person) => person.id === updatedPerson.id);
-
       if (index !== -1) {
         this.people[index] = updatedPerson;
-        localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(this.people));
+        localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
       }
     },
-
-    deletePerson(personId: number) {
-      this.people = this.people.filter((person) => person.id !== personId);
-      localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(this.people));
-    },
+     deletePerson(id: string) {
+        const index = this.people.findIndex((person) => person.id === id);
+        if (index !== -1) {
+          this.people.splice(index, 1);
+          localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
+        }
+      },
   },
 });
 

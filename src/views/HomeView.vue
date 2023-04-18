@@ -2,8 +2,6 @@
 <template>
   <div>
     <h1>People</h1>
-    <PeopleList />
-    <AddPerson />
   </div>
 </template>
 
