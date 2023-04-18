@@ -1,18 +1,19 @@
 <!-- src/views/Home.vue -->
 <template>
   <div>
-    <h1>People</h1>
+    <meeting-management />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import PeopleList from '@/components/PeopleList.vue';
+import MeetingManagement from '@/components/MeetingManagement.vue';
+
 
 export default defineComponent({
   name: 'Home',
   components: {
-    PeopleList,
+    MeetingManagement,
   },
 });
 </script>

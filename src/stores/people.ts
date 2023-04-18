@@ -3,12 +3,21 @@ import { defineStore } from 'pinia';
 import { reactive, markRaw } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 
+export interface Meeting {
+  id: string;
+  partnerId: string;
+  quarter: number;
+  year: number;
+  completed: boolean;
+}
+
 export interface Person {
-   id: string;
-   name: string;
-   location: string;
-   role: string;
-   confirmRemoval?: boolean;
+  id: string;
+  name: string;
+  location: string;
+  role: string;
+  confirmRemoval?: boolean;
+  meetings: Meeting[];
 }
 
 const PEOPLE_STORAGE_KEY = 'people';
@@ -29,6 +38,7 @@ export const usePeopleStore = defineStore('people', {
           name,
           location,
           role,
+          meetings: [],
       };
 
       this.people.push(person);
@@ -38,6 +48,29 @@ export const usePeopleStore = defineStore('people', {
       const index = this.people.findIndex((person) => person.id === id);
       if (index !== -1) {
         this.people.splice(index, 1);
+        localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
+      }
+    },
+    addMeeting(personId: string, partnerId: string, quarter: number, year: number) {
+      const meeting: Meeting = {
+        id: uuidv4(),
+        partnerId,
+        quarter,
+        year,
+        completed: false,
+      };
+  
+      const person = this.people.find((p) => p.id === personId);
+      if (person) {
+        person.meetings.push(meeting);
+        localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
+      }
+    },
+    updateMeetingCompletion(personId: string, meetingId: string, completed: boolean) {
+      const person = this.people.find((p) => p.id === personId);
+      const meeting = person?.meetings.find((m) => m.id === meetingId);
+      if (meeting) {
+        meeting.completed = completed;
         localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
       }
     },
