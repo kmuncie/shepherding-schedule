@@ -2,7 +2,7 @@
   <div>
     <h2>People List</h2>
     <div class="card-container">
-      <div v-for="person in people" :key="person.id" class="card">
+      <div v-for="person in sortedPeople" :key="person.id" class="card">
         <div class="name-role">
           <h3>{{ person.name }}</h3>
           <span :class="{'shepherd': person.role === 'shepherd'}">{{ person.role }}</span>
@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, computed } from 'vue';
 import { usePeopleStore } from '@/stores/people';
 
 export default defineComponent({
@@ -31,10 +31,15 @@ export default defineComponent({
       person.confirmRemoval = !person.confirmRemoval;
     };
 
+    const sortedPeople = computed(() => {
+      return peopleStore.people.slice().sort((a, b) => a.name.localeCompare(b.name));
+    });
+
     return {
       people: peopleStore.$state.people,
       removePerson,
       toggleConfirmation,
+      sortedPeople,
     };
   },
 });
