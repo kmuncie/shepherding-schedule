@@ -4,6 +4,7 @@ import { RouterLink, RouterView } from 'vue-router'
 
 <template>
   <header>
+    <img src="./assets/shepherd.png">
     <h1>Shepherding Scheduling</h1>
     <nav>
       <RouterLink to="/">Home</RouterLink>
@@ -20,12 +21,23 @@ import { RouterLink, RouterView } from 'vue-router'
 
 header {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: baseline;
+  grid-template-columns: auto 1fr 1fr;
+  align-items: center;
+}
+
+img {
+  max-width: 50px;
 }
 
 h1 {
-  margin: 0;
+  clip: rect(1px, 1px, 1px, 1px);
+clip-path: inset(50%);
+height: 1px;
+width: 1px;
+margin: -1px;
+overflow: hidden;
+padding: 0;
+position: absolute;
 }
 
 nav {
