@@ -5,7 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 export interface Meeting {
   id: string;
-  partnerId: string;
+  shepherdId: string;
+  sheepId: string;
   quarter: number;
   year: number;
   completed: boolean;
@@ -51,18 +52,22 @@ export const usePeopleStore = defineStore('people', {
         localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
       }
     },
-    addMeeting(personId: string, partnerId: string, quarter: number, year: number) {
+    addMeeting(shepherdId: string, sheepId: string, quarter: number, year: number) {
       const meeting: Meeting = {
         id: uuidv4(),
-        partnerId,
+        shepherdId,
+        sheepId,
         quarter,
         year,
         completed: false,
       };
-  
-      const person = this.people.find((p) => p.id === personId);
-      if (person) {
-        person.meetings.push(meeting);
+    
+      const shepherd = this.people.find((person) => person.id === shepherdId);
+      if (shepherd) {
+        if (!shepherd.meetings) {
+          shepherd.meetings = [];
+        }
+        shepherd.meetings.push(meeting);
         localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
       }
     },

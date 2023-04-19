@@ -1,41 +1,41 @@
 <template>
     <div>
       <h2>Meetings Management</h2>
+
       <form @submit.prevent="addNewMeeting">
-        <label for="personId">Select Person:</label>
-        <select v-model="selectedPersonId" id="personId" required>
-          <option disabled value="">Choose a person</option>
-          <option v-for="person in people" :key="person.id" :value="person.id">
-            {{ person.name }}
-          </option>
+      <div>
+        <label for="shepherd">Shepherd:</label>
+        <select id="shepherd" v-model="selectedShepherdId">
+          <option value="">Select a shepherd</option>
+          <option v-for="person in shepherds" :key="person.id" :value="person.id">{{ person.name }}</option>
         </select>
-  
-        <label for="partnerId">Select Meeting Partner:</label>
-        <select v-model="selectedPartnerId" id="partnerId" required>
-          <option disabled value="">Choose a partner</option>
-          <option
-            v-for="person in people"
-            :key="person.id"
-            :value="person.id"
-            :disabled="person.id === selectedPersonId"
-          >
-            {{ person.name }}
-          </option>
+      </div>
+
+      <div>
+        <label for="sheep">Sheep:</label>
+        <select id="sheep" v-model="selectedSheepId">
+          <option value="">Select a sheep</option>
+          <option v-for="person in people" :key="person.id" :value="person.id">{{ person.name }}</option>
         </select>
-  
-        <label for="quarter">Select Quarter:</label>
-        <select v-model="selectedQuarter" id="quarter" required>
-          <option disabled value="">Choose a quarter</option>
-          <option v-for="quarter in 4" :key="quarter" :value="quarter">
-            {{ quarter }}
-          </option>
+      </div>
+
+      <div>
+        <label for="quarter">Quarter:</label>
+        <select id="quarter" v-model="selectedQuarter">
+          <option value="1">Q1</option>
+          <option value="2">Q2</option>
+          <option value="3">Q3</option>
+          <option value="4">Q4</option>
         </select>
-  
-        <label for="year">Enter Year:</label>
-        <input v-model="selectedYear" id="year" type="number" required />
-  
-        <button type="submit">Add Meeting</button>
-      </form>
+      </div>
+
+      <div>
+        <label for="year">Year:</label>
+        <input id="year" type="number" min="2023" step="1" v-model.number="selectedYear" />
+      </div>
+
+      <button type="submit">Add Meeting</button>
+    </form>
   
       <h3>Meetings</h3>
       <ul>
@@ -43,7 +43,7 @@
           <strong>{{ person.name }}'s Meetings:</strong>
           <ul>
             <li v-for="meeting in person.meetings" :key="meeting.id">
-              {{ getPartnerName(meeting.partnerId) }} - Q{{ meeting.quarter }} {{ meeting.year }}
+              {{ getPartnerName(meeting.sheepId) }} - Q{{ meeting.quarter }} {{ meeting.year }}
               <input
                 type="checkbox"
                 v-model="meeting.completed"
@@ -57,37 +57,45 @@
   </template>
   
   <script lang="ts">
-  import { defineComponent, ref } from 'vue';
+  import { defineComponent, ref, computed } from 'vue';
   import { usePeopleStore } from '@/stores/people';
   
   export default defineComponent({
     setup() {
       const peopleStore = usePeopleStore();
   
-      const selectedPersonId = ref('');
-      const selectedPartnerId = ref('');
+      const selectedShepherdId = ref('');
+      const selectedSheepId = ref('');
       const selectedQuarter = ref('');
-      const selectedYear = ref('');
-  
-        const addNewMeeting = () => {
-        if (selectedPersonId.value && selectedPartnerId.value && selectedQuarter.value && selectedYear.value) {
-            peopleStore.addMeeting(
-            selectedPersonId.value,
-            selectedPartnerId.value,
-            Number(selectedQuarter.value),
-            Number(selectedYear.value)
-            );
-            resetForm();
+      const selectedYear = ref('2023');
+     
+      const addNewMeeting = () => {
+        if (selectedShepherdId.value && selectedSheepId.value && selectedQuarter.value && selectedYear.value) {
+          peopleStore.addMeeting(
+            selectedShepherdId.value,
+            selectedSheepId.value,
+            parseInt(selectedQuarter.value),
+            parseInt(selectedYear.value)
+          );
+          resetForm();
         }
-        };
+      };
   
       const resetForm = () => {
-        selectedPersonId.value = '';
-        selectedPartnerId.value = '';
+        selectedShepherdId.value = '';
+        selectedSheepId.value = '';
         selectedQuarter.value = '';
         selectedYear.value = '';
       };
-  
+
+      const availablePartners = computed(() => {
+        return peopleStore.$state.people.filter((person) => person.id !== selectedShepherdId.value);
+      });
+
+      const shepherds = computed(() => {
+        return peopleStore.$state.people.filter(person => person.role === 'shepherd');
+      });
+
       const getPartnerName = (partnerId: string) => {
         const partner = peopleStore.$state.people.find((person) => person.id === partnerId);
         return partner ? partner.name : '';
@@ -99,8 +107,10 @@
   
       return {
         people: peopleStore.$state.people,
-        selectedPersonId,
-        selectedPartnerId,
+        availablePartners,
+        shepherds,
+        selectedShepherdId,
+        selectedSheepId,
         selectedQuarter,
         selectedYear,
         addNewMeeting,
