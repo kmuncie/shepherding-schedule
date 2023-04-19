@@ -4,34 +4,34 @@ import { RouterLink, RouterView } from 'vue-router'
 
 <template>
   <header>
-    <h1>Field Apps Shepherding</h1>
-    <div class="wrapper">
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/people-management">People Management</RouterLink>
-      </nav>
-    </div>
+    <h1>Shepherding Scheduling</h1>
+    <nav>
+      <RouterLink to="/">Home</RouterLink>
+      <RouterLink to="/people">People</RouterLink>
+      <RouterLink to="/meetings">Meetings</RouterLink>
+
+    </nav>
   </header>
 
-  <RouterView />
+  <RouterView class="routerView"/>
 </template>
 
 <style scoped>
+
 header {
-  line-height: 1.5;
-  max-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: baseline;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+h1 {
+  margin: 0;
 }
 
 nav {
-  width: 100%;
-  font-size: 12px;
+  display: flex;
+  align-items: center;
   text-align: center;
-  margin-top: 2rem;
 }
 
 nav a.router-link-exact-active {
@@ -53,29 +53,6 @@ nav a:first-of-type {
 }
 
 @media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
 }
 </style>
