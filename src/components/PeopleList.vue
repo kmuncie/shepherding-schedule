@@ -2,17 +2,21 @@
   <div>
     <h2>People List</h2>
     <div class="card-container">
-      <div v-for="person in sortedPeople" :key="person.id" class="card">
-        <div class="name-role">
+      <q-card bordered class="full-width" v-for="person in sortedPeople" :key="person.id">
+        <q-card-section :class="{'text-deep-orange-6': person.role === 'shepherd'}">
           <h3>{{ person.name }}</h3>
-          <span :class="{'shepherd': person.role === 'shepherd'}">{{ person.role }}</span>
-        </div>
-        <p class="location">{{ person.location }}</p>
-        <button v-if="!person.confirmRemoval" @click="toggleConfirmation(person)">Remove</button>
-        <button v-else @click="removePerson(person.id)">Confirm Removal</button>
-      </div>
-    </div>
+          <p class="text-subtitle1 q-ma-none">{{ person.location }} 
+            <span v-if="person.role === 'shepherd'"> (Shepherd)</span>
+          </p>
+        </q-card-section>      
+        <q-separator />
+        <q-card-actions class="justify-around q-px-md">
+            <q-btn flat round color="gray" icon="delete" v-if="!person.confirmRemoval" @click="toggleConfirmation(person)"></q-btn>
+            <q-btn flat round color="red" icon="delete_forever" v-else @click="removePerson(person.id)"></q-btn>
+        </q-card-actions>
+    </q-card>
   </div>
+</div>
 </template>
 
 <script lang="ts">
@@ -47,36 +51,21 @@ export default defineComponent({
 
 <style scoped>
 .card-container {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
 
-.card {
-  background-color: #f0f0f0;
-  padding: 1rem;
-  border-radius: 4px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-width: 300px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+@media (min-width: 1024px) {
+  .card-container {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 }
 
-.name-role {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.5;
 }
 
-.location {
-  font-size: 0.9rem;
-  color: #777;
-  margin-bottom: 1rem;
-}
-
-.shepherd {
-  color: #0070f3;
-  font-weight: bold;
-}
 </style>
