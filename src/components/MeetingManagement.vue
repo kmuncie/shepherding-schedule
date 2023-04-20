@@ -44,11 +44,10 @@
           <ul>
             <li v-for="meeting in person.meetings" :key="meeting.id">
               {{ getPartnerName(meeting.sheepId) }} - Q{{ meeting.quarter }} {{ meeting.year }}
-              <input
-                type="checkbox"
-                v-model="meeting.completed"
-                @change="updateMeetingCompletion(person.id, meeting.id, meeting.completed)"
-                /> Completed
+              <q-checkbox 
+              v-model="meeting.completed"
+              @change="updateMeetingCompletion(person.id, meeting.id, meeting.completed)"
+              />
             </li>
           </ul>
         </li>

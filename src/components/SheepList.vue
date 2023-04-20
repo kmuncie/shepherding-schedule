@@ -7,32 +7,15 @@
             <h3 class="q-ma-none">{{ sheep.name }}</h3>
             <p class="text-subtitle1 q-ma-none">{{ sheep.location }}</p>
           </q-card-section>      
-          <q-separator v-if="meeting in sheep.meetings" />
-          <ul>
-          <li v-for="meeting in sheep.meetings" :key="meeting.id">
-            {{ getShepherdName(meeting.shepherdId) }} - Q{{ meeting.quarter }} {{ meeting.year }}
-            <input
-              type="checkbox"
-              v-model="meeting.completed"
-              @change="updateMeetingCompletion(sheep.id, meeting.id, meeting.completed)"
-            /> Completed
-          </li>
+          <ul v-if="sheep.meetings && sheep.meetings.length > 0" class="q-ma-none">
+            <li v-for="meeting in sheep.meetings" :key="meeting.id" 
+            class="text-xs" :class="{ 'text-orange-10': !meeting.completed }">
+              Q{{ meeting.quarter }} {{
+              meeting.year }} -
+              {{ getPersonNameById(meeting.sheepId) }}
+            </li>
         </ul>
       </q-card>
-      <!-- <div class="sheep-card" v-for="sheep in sheepList" :key="sheep.id">
-        <h3>{{ sheep.name }}</h3>
-        <p class="location">{{ sheep.location }}</p>
-        <ul>
-          <li v-for="meeting in sheep.meetings" :key="meeting.id">
-            {{ getShepherdName(meeting.shepherdId) }} - Q{{ meeting.quarter }} {{ meeting.year }}
-            <input
-              type="checkbox"
-              v-model="meeting.completed"
-              @change="updateMeetingCompletion(sheep.id, meeting.id, meeting.completed)"
-            /> Completed
-          </li>
-        </ul>
-      </div> -->
     </div>
   </div>
 </template>
@@ -52,6 +35,11 @@ export default defineComponent({
       return shepherd ? shepherd.name : 'Unknown';
     };
 
+    const getPersonNameById = (id: string) => {
+        const person = peopleStore.$state.people.find((person) => person.id === id);
+        return person ? person.name : '';
+      };
+
     const updateMeetingCompletion = (sheepId: string, meetingId: string, completed: boolean) => {
       peopleStore.updateMeetingCompletion(sheepId, meetingId, completed);
     };
@@ -59,13 +47,14 @@ export default defineComponent({
     return {
       sheepList,
       getShepherdName,
+      getPersonNameById,
       updateMeetingCompletion,
     };
   },
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .sheep-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -73,16 +62,15 @@ export default defineComponent({
   margin: 20px;
 }
 
-.sheep-card {
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 20px;
-  background-color: #fff;
-}
-
-.location {
-  font-size: 14px;
-  color: #888;
-  margin-bottom: 10px;
-}
+ul {
+    padding: 0;
+      li {
+        display: flex;
+        align-items: center;
+        list-style-type: none;
+        font-size: 14px;
+        padding: 4px;
+        border-top: 1px dotted #777;
+      }
+    }
 </style>

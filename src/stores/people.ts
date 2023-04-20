@@ -63,22 +63,34 @@ export const usePeopleStore = defineStore('people', {
       };
     
       const shepherd = this.people.find((person) => person.id === shepherdId);
-      if (shepherd) {
+      const sheep = this.people.find((person) => person.id === sheepId);
+    
+      if (shepherd && sheep) {
         if (!shepherd.meetings) {
           shepherd.meetings = [];
         }
+        if (!sheep.meetings) {
+          sheep.meetings = [];
+        }
+    
         shepherd.meetings.push(meeting);
+        sheep.meetings.push(meeting);
+    
         localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
       }
-    },
-    updateMeetingCompletion(personId: string, meetingId: string, completed: boolean) {
-      const person = this.people.find((p) => p.id === personId);
-      const meeting = person?.meetings.find((m) => m.id === meetingId);
-      if (meeting) {
-        meeting.completed = completed;
-        localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
-      }
-    },
+    },    
+    updateMeetingCompletion(shepherdId: string, meetingId: string, completed: boolean) {
+      this.people.forEach((person) => {
+        console.log(person);
+        const meeting = person.meetings.find((m) => m.id === meetingId);
+        if (meeting) {
+          meeting.completed = completed;
+        }
+      });
+      
+    
+      localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
+    },    
     exportPeopleData() {
       const data = JSON.stringify(markRaw(this.people));
       const blob = new Blob([data], { type: 'application/json' });

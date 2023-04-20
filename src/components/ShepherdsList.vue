@@ -7,11 +7,17 @@
             <h3 class="q-ma-none">{{ shepherd.name }}</h3>
             <p class="text-subtitle1 q-ma-none">{{ shepherd.location }}</p>
           </q-card-section>      
-          <q-separator v-if="meeting in shepherd.meetings" />
-          <ul>
-            <li v-for="meeting in shepherd.meetings" :key="meeting.id">
-              {{ getPersonNameById(meeting.sheepId) }} - Q{{ meeting.quarter }} {{
-              meeting.year }} - {{ meeting.completed ? 'Completed' : 'Not completed' }}
+          <ul v-if="shepherd.meetings && shepherd.meetings.length > 0" class="q-ma-none">
+            <li v-for="meeting in shepherd.meetings" :key="meeting.id" 
+            class="text-xs" :class="{ 'bg-yellow-2': !meeting.completed }">
+              <q-checkbox dense class="q-mr-xs"
+              v-if="meeting.shepherdId === shepherd.id"
+              v-model="meeting.completed"
+              @change="updateMeetingCompletion(person.id, meeting.id, meeting.completed)"
+              />
+              Q{{ meeting.quarter }} {{
+              meeting.year }} -
+              {{ getMeetingDisplayName(shepherd.id, meeting.sheepId, meeting.shepherdId) }}
             </li>
           </ul>
       </q-card>
@@ -33,34 +39,46 @@
         const person = peopleStore.$state.people.find((person) => person.id === id);
         return person ? person.name : '';
       };
+
+      const updateMeetingCompletion = (personId: string, meetingId: string, completed: boolean) => {
+        peopleStore.updateMeetingCompletion(personId, meetingId, completed);
+      };
+
+      const getMeetingDisplayName = (shepherdId: string, sheepId: string, meetingShepherdId: string) => {
+            if (shepherdId === sheepId) {
+            return getPersonNameById(meetingShepherdId);
+            } else {
+            return getPersonNameById(sheepId);
+            }
+        };
   
       return {
         shepherds,
         getPersonNameById,
+        updateMeetingCompletion,
+        getMeetingDisplayName,
       };
     },
   });
   </script>
   
-  <style scoped>
+  <style lang="scss" scoped>
   .shepherds-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     grid-gap: 20px;
     margin: 20px;
   }
-  
-  .shepherd-card {
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 20px;
-    background-color: #fff;
-  }
-  
-  .location {
-    font-size: 14px;
-    color: #888;
-    margin-bottom: 10px;
-  }
+  ul {
+    padding: 0;
+      li {
+        display: flex;
+        align-items: center;
+        list-style-type: none;
+        font-size: 14px;
+        padding: 4px;
+        border-top: 1px dotted #777;
+      }
+    }
   </style>
   
