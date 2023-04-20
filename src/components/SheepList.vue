@@ -2,7 +2,7 @@
   <div>
     <h2>Sheep List</h2>
     <div class="sheep-grid">
-      <q-card bordered class="full-width" v-for="sheep in sheepList" :key="sheep.id">
+      <q-card bordered class="full-width" v-for="sheep in sortedSheep" :key="sheep.id">
           <q-card-section>
             <h3 class="q-ma-none">{{ sheep.name }}</h3>
             <p class="text-subtitle1 q-ma-none">{{ sheep.location }}</p>
@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, computed } from 'vue';
 import { usePeopleStore } from '@/stores/people';
 
 export default defineComponent({
@@ -29,6 +29,10 @@ export default defineComponent({
     const peopleStore = usePeopleStore();
 
     const sheepList = peopleStore.$state.people.filter((person) => person.role !== 'shepherd');
+
+    const sortedSheep = computed(() => {
+      return sheepList.slice().sort((a, b) => a.name.localeCompare(b.name));
+        });
 
     const getShepherdName = (shepherdId: string) => {
       const shepherd = peopleStore.$state.people.find((person) => person.id === shepherdId);
@@ -46,6 +50,7 @@ export default defineComponent({
 
     return {
       sheepList,
+      sortedSheep,
       getShepherdName,
       getPersonNameById,
       updateMeetingCompletion,

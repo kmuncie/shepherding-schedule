@@ -84,7 +84,7 @@
         selectedShepherdId.value = '';
         selectedSheepId.value = '';
         selectedQuarter.value = '';
-        selectedYear.value = '';
+        selectedYear.value = '2023';
       };
 
       const availablePartners = computed(() => {

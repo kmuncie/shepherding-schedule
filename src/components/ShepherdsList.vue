@@ -2,7 +2,7 @@
     <div class="shepherds-list">
       <h2>Shepherds List</h2>
       <div class="shepherds-grid">
-        <q-card bordered class="full-width" v-for="shepherd in shepherds" :key="shepherd.id">
+        <q-card bordered class="full-width" v-for="shepherd in sortedShepherds" :key="shepherd.id">
           <q-card-section>
             <h3 class="q-ma-none">{{ shepherd.name }}</h3>
             <p class="text-subtitle1 q-ma-none">{{ shepherd.location }}</p>
@@ -26,7 +26,7 @@
   </template>
   
   <script lang="ts">
-  import { defineComponent } from 'vue';
+  import { defineComponent, computed } from 'vue';
   import { usePeopleStore } from '@/stores/people';
   
   export default defineComponent({
@@ -35,6 +35,10 @@
   
       const shepherds = peopleStore.$state.people.filter((person) => person.role === 'shepherd');
   
+      const sortedShepherds = computed(() => {
+      return shepherds.slice().sort((a, b) => a.name.localeCompare(b.name));
+        });
+
       const getPersonNameById = (id: string) => {
         const person = peopleStore.$state.people.find((person) => person.id === id);
         return person ? person.name : '';
@@ -54,6 +58,7 @@
   
       return {
         shepherds,
+        sortedShepherds,
         getPersonNameById,
         updateMeetingCompletion,
         getMeetingDisplayName,
