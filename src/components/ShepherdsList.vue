@@ -2,16 +2,19 @@
     <div class="shepherds-list">
       <h2>Shepherds List</h2>
       <div class="shepherds-grid">
-        <div class="shepherd-card" v-for="shepherd in shepherds" :key="shepherd.id">
-          <h3>{{ shepherd.name }}</h3>
-          <p class="location">{{ shepherd.location }}</p>
+        <q-card bordered class="full-width" v-for="shepherd in shepherds" :key="shepherd.id">
+          <q-card-section>
+            <h3 class="q-ma-none">{{ shepherd.name }}</h3>
+            <p class="text-subtitle1 q-ma-none">{{ shepherd.location }}</p>
+          </q-card-section>      
+          <q-separator v-if="meeting in shepherd.meetings" />
           <ul>
             <li v-for="meeting in shepherd.meetings" :key="meeting.id">
               {{ getPersonNameById(meeting.sheepId) }} - Q{{ meeting.quarter }} {{
               meeting.year }} - {{ meeting.completed ? 'Completed' : 'Not completed' }}
             </li>
           </ul>
-        </div>
+      </q-card>
       </div>
     </div>
   </template>

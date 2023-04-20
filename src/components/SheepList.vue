@@ -2,7 +2,24 @@
   <div>
     <h2>Sheep List</h2>
     <div class="sheep-grid">
-      <div class="sheep-card" v-for="sheep in sheepList" :key="sheep.id">
+      <q-card bordered class="full-width" v-for="sheep in sheepList" :key="sheep.id">
+          <q-card-section>
+            <h3 class="q-ma-none">{{ sheep.name }}</h3>
+            <p class="text-subtitle1 q-ma-none">{{ sheep.location }}</p>
+          </q-card-section>      
+          <q-separator v-if="meeting in sheep.meetings" />
+          <ul>
+          <li v-for="meeting in sheep.meetings" :key="meeting.id">
+            {{ getShepherdName(meeting.shepherdId) }} - Q{{ meeting.quarter }} {{ meeting.year }}
+            <input
+              type="checkbox"
+              v-model="meeting.completed"
+              @change="updateMeetingCompletion(sheep.id, meeting.id, meeting.completed)"
+            /> Completed
+          </li>
+        </ul>
+      </q-card>
+      <!-- <div class="sheep-card" v-for="sheep in sheepList" :key="sheep.id">
         <h3>{{ sheep.name }}</h3>
         <p class="location">{{ sheep.location }}</p>
         <ul>
@@ -15,7 +32,7 @@
             /> Completed
           </li>
         </ul>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>

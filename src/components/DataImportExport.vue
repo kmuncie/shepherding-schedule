@@ -1,16 +1,25 @@
 <template>
     <div>
       <h2>Data Import/Export</h2>
-      <button @click="exportData">Export People Data</button>
-      <input type="file" @change="importData" />
+      <q-btn color="secondary" label="Export People Data" @click="exportData" class="q-mb-lg"/>
+      <q-uploader
+        label="Upload a JSON file"
+        @added="importData"
+        :max-files="1"
+        :no-thumbnails="true"
+      ></q-uploader>
     </div>
   </template>
   
   <script lang="ts">
   import { defineComponent } from 'vue';
   import { usePeopleStore } from '@/stores/people';
+  import { QUploader } from 'quasar';
   
   export default defineComponent({
+    components: {
+      QUploader,
+    },
     setup() {
       const peopleStore = usePeopleStore();
   
@@ -23,9 +32,9 @@
         URL.revokeObjectURL(url);
       };
   
-      const importData = (event: Event) => {
-        const file = (event.target as HTMLInputElement).files?.[0];
-        if (file) {
+      const importData = (files: File[]) => {
+        if (files && files.length > 0) {
+          const file = files[0];
           peopleStore.importPeopleData(file);
         }
       };

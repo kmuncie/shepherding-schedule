@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import { Quasar } from 'quasar'
+import { Quasar, QUploader } from 'quasar'
 
 // Import icon libraries
 import '@quasar/extras/material-icons-outlined/material-icons-outlined.css'
