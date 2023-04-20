@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2>Sheep List</h2>
+    <h2>🐑 Sheep</h2>
     <div class="sheep-grid">
       <q-card class="full-width" v-for="sheep in sortedSheep" :key="sheep.id">
         <q-card-section>
@@ -77,9 +77,6 @@ ul {
     display: flex;
     align-items: center;
     list-style-type: none;
-    font-size: 14px;
-    padding: 4px;
-    border-top: 1px dotted #777;
   }
 }
 </style>

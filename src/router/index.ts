@@ -14,11 +14,11 @@ const router = createRouter({
       name: 'PeopleManagement',
       component: () => import('../views/PeopleManagementView.vue')
     },
-    {
-      path: '/meetings',
-      name: 'MeetingManagement',
-      component: () => import('../views/MeetingManagementView.vue')
-    },
+    // {
+    //   path: '/meetings',
+    //   name: 'MeetingManagement',
+    //   component: () => import('../views/MeetingManagementView.vue')
+    // },
   ]
 })
 

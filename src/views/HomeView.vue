@@ -12,11 +12,10 @@ import ShepherdsList from '@/components/ShepherdsList.vue';
 import SheepList from '@/components/SheepList.vue';
 
 export default defineComponent({
-  name: 'Home',
   components: {
     ShepherdsList,
     SheepList,
-  },
+},
 });
 </script>
 

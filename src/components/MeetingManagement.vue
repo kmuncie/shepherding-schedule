@@ -1,48 +1,28 @@
 <template>
   <div>
-    <h2>Meetings Management</h2>
-
     <q-form @submit.prevent="addNewMeeting" class="q-gutter-md">
       <div>
-        <q-select filled id="shepherd" v-model="selectedShepherdId" :options="shepherdOptions" label="Shepherd"
+        <q-select dense filled id="shepherd" v-model="selectedShepherdId" :options="shepherdOptions" label="Shepherd"
           option-value="id" option-label="name" emit-value map-options />
       </div>
 
       <div>
-        <q-select filled id="sheep" v-model="selectedSheepId" :options="peopleOptions" label="Sheep" option-value="id"
+        <q-select dense filled id="sheep" v-model="selectedSheepId" :options="peopleOptions" label="Sheep" option-value="id"
           option-label="name" emit-value map-options />
       </div>
 
       <div>
-        <q-select filled id="quarter" v-model="selectedQuarter" :options="quarterOptions" label="Quarter" emit-value
+        <q-select dense filled id="quarter" v-model="selectedQuarter" :options="quarterOptions" label="Quarter" emit-value
           map-options />
       </div>
 
       <div>
-        <q-input filled id="year" type="number" min="2023" step="1" v-model.number="selectedYear" label="Year" />
+        <q-input dense filled id="year" type="number" min="2023" step="1" v-model.number="selectedYear" label="Year" />
       </div>
 
-      <q-btn color="primary" type="submit" label="Add Meeting" />
+      <q-btn dense color="primary" type="submit" label="Add Meeting" />
     </q-form>
 
-    <h3>Meetings</h3>
-    <ul>
-      <li v-for="person in people" :key="person.id">
-        <strong>{{ person.name }}'s Meetings:</strong>
-        <ul>
-          <li v-for="meeting in person.meetings" :key="meeting.id">
-            <div
-              @click="() => { meeting.completed = !meeting.completed; updateMeetingCompletion(person.id, meeting.id, meeting.completed); }">
-              <q-chip :class="{ 'bg-yellow-2': !meeting.completed }">
-                {{ getPartnerName(meeting.sheepId) }} - Q{{ meeting.quarter }} {{ meeting.year }}
-                <q-icon v-if="meeting.completed" name="check_circle" class="q-ml-xs" />
-              </q-chip>
-            </div>
-          </li>
-
-        </ul>
-      </li>
-    </ul>
   </div>
 </template>
   
@@ -95,14 +75,23 @@ export default defineComponent({
       return peopleStore.$state.people.filter(person => person.role === 'shepherd');
     });
 
-    const getPartnerName = (partnerId: string) => {
-      const partner = peopleStore.$state.people.find((person) => person.id === partnerId);
-      return partner ? partner.name : '';
-    };
+    // const getPartnerName = (partnerId: string) => {
+    //   const partner = peopleStore.$state.people.find((person) => person.id === partnerId);
+    //   return partner ? partner.name : '';
+    // };
 
-    const updateMeetingCompletion = (personId: string, meetingId: string, completed: boolean) => {
-      peopleStore.updateMeetingCompletion(personId, meetingId, completed);
-    };
+    // const updateMeetingCompletion = (personId: string, meetingId: string, completed: boolean) => {
+    //   peopleStore.updateMeetingCompletion(personId, meetingId, completed);
+    // };
+
+    // const shepherdsWithUncompletedMeetings = computed(() => {
+    //   return peopleStore.people.filter(person => {
+    //     return person.isShepherd && person.meetings.some(meeting => !meeting.completed);
+    //   }).map(shepherd => {
+    //     const uncompletedMeetings = shepherd.meetings.filter(meeting => !meeting.completed);
+    //     return { ...shepherd, meetings: uncompletedMeetings };
+    //   });
+    // });
 
     return {
       people: peopleStore.$state.people,
@@ -116,8 +105,9 @@ export default defineComponent({
       peopleOptions,
       quarterOptions,
       addNewMeeting,
-      getPartnerName,
-      updateMeetingCompletion,
+      // getPartnerName,
+      // updateMeetingCompletion,
+      // shepherdsWithUncompletedMeetings,
     };
   },
 });

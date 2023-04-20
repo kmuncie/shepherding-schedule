@@ -1,6 +1,6 @@
 <template>
   <div class="shepherds-list">
-    <h2>Shepherds List</h2>
+    <h2>👨🏻‍🌾 Shepherds</h2>
     <div class="shepherds-grid">
       <q-card class="full-width" v-for="shepherd in sortedShepherds" :key="shepherd.id">
         <q-card-section>
@@ -18,18 +18,24 @@
               </q-chip>
             </div>
           </li>
-
         </ul>
       </q-card>
     </div>
+    <q-expansion-item dense dense-toggle icon="edit" label="Add a Meeting">
+      <meeting-management />
+    </q-expansion-item>
   </div>
 </template>
   
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
 import { usePeopleStore } from '@/stores/people';
+import MeetingManagement from '@/components/MeetingManagement.vue';
 
 export default defineComponent({
+  components: {
+    MeetingManagement,
+  },
   setup() {
     const peopleStore = usePeopleStore();
 
@@ -77,6 +83,7 @@ export default defineComponent({
 
 ul {
   padding: 0;
+
   li {
     list-style-type: none;
   }
