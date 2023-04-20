@@ -22,6 +22,12 @@ export default defineComponent({
 <style scoped>
 .home-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+  .home-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 </style>
