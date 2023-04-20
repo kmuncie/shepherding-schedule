@@ -1,7 +1,7 @@
 // src/stores/people.ts
-import { defineStore } from 'pinia';
-import { reactive, markRaw } from 'vue';
-import { v4 as uuidv4 } from 'uuid';
+import { defineStore } from "pinia";
+import { reactive, markRaw } from "vue";
+import { v4 as uuidv4 } from "uuid";
 
 export interface Meeting {
   id: string;
@@ -21,38 +21,49 @@ export interface Person {
   meetings: Meeting[];
 }
 
-const PEOPLE_STORAGE_KEY = 'people';
+const PEOPLE_STORAGE_KEY = "people";
 
 const getStoredPeople = (): Person[] => {
   const storedPeople = localStorage.getItem(PEOPLE_STORAGE_KEY);
   return storedPeople ? JSON.parse(storedPeople) : [];
 };
 
-export const usePeopleStore = defineStore('people', {
+export const usePeopleStore = defineStore("people", {
   state: () => ({
     people: reactive(getStoredPeople()),
   }),
   actions: {
     addPerson(name: string, location: string, role: string) {
       const person: Person = {
-          id: uuidv4(),
-          name,
-          location,
-          role,
-          meetings: [],
+        id: uuidv4(),
+        name,
+        location,
+        role,
+        meetings: [],
       };
 
       this.people.push(person);
-      localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
+      localStorage.setItem(
+        PEOPLE_STORAGE_KEY,
+        JSON.stringify(markRaw(this.people))
+      );
     },
     deletePerson(id: string) {
       const index = this.people.findIndex((person) => person.id === id);
       if (index !== -1) {
         this.people.splice(index, 1);
-        localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
+        localStorage.setItem(
+          PEOPLE_STORAGE_KEY,
+          JSON.stringify(markRaw(this.people))
+        );
       }
     },
-    addMeeting(shepherdId: string, sheepId: string, quarter: number, year: number) {
+    addMeeting(
+      shepherdId: string,
+      sheepId: string,
+      quarter: number,
+      year: number
+    ) {
       const meeting: Meeting = {
         id: uuidv4(),
         shepherdId,
@@ -61,10 +72,10 @@ export const usePeopleStore = defineStore('people', {
         year,
         completed: false,
       };
-    
+
       const shepherd = this.people.find((person) => person.id === shepherdId);
       const sheep = this.people.find((person) => person.id === sheepId);
-    
+
       if (shepherd && sheep) {
         if (!shepherd.meetings) {
           shepherd.meetings = [];
@@ -72,14 +83,21 @@ export const usePeopleStore = defineStore('people', {
         if (!sheep.meetings) {
           sheep.meetings = [];
         }
-    
+
         shepherd.meetings.push(meeting);
         sheep.meetings.push(meeting);
-    
-        localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
+
+        localStorage.setItem(
+          PEOPLE_STORAGE_KEY,
+          JSON.stringify(markRaw(this.people))
+        );
       }
-    },    
-    updateMeetingCompletion(shepherdId: string, meetingId: string, completed: boolean) {
+    },
+    updateMeetingCompletion(
+      shepherdId: string,
+      meetingId: string,
+      completed: boolean
+    ) {
       this.people.forEach((person) => {
         console.log(person);
         const meeting = person.meetings.find((m) => m.id === meetingId);
@@ -87,13 +105,15 @@ export const usePeopleStore = defineStore('people', {
           meeting.completed = completed;
         }
       });
-      
-    
-      localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
-    },    
+
+      localStorage.setItem(
+        PEOPLE_STORAGE_KEY,
+        JSON.stringify(markRaw(this.people))
+      );
+    },
     exportPeopleData() {
       const data = JSON.stringify(markRaw(this.people));
-      const blob = new Blob([data], { type: 'application/json' });
+      const blob = new Blob([data], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       return url;
     },
@@ -102,10 +122,12 @@ export const usePeopleStore = defineStore('people', {
       reader.onload = () => {
         const data = JSON.parse(reader.result as string);
         this.people = reactive(data);
-        localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
+        localStorage.setItem(
+          PEOPLE_STORAGE_KEY,
+          JSON.stringify(markRaw(this.people))
+        );
       };
       reader.readAsText(file);
-    },    
+    },
   },
 });
-

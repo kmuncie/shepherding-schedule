@@ -2,21 +2,22 @@
   <div>
     <h2>People List</h2>
     <div class="card-container">
-          <q-card bordered class="full-width" v-for="person in sortedPeople" :key="person.id">
-            <q-card-section :class="{ 'text-deep-orange-6': person.role === 'shepherd' }">
-              <h3 class="q-ma-none">{{ person.name }}</h3>
-              <p class="text-subtitle1 q-ma-none">{{ person.location }} 
-                <span v-if="person.role === 'shepherd'"> (Shepherd)</span>
-              </p>
-            </q-card-section>      
-            <q-separator />
-            <q-card-actions class="justify-around q-px-md">
-                <q-btn flat round color="gray" icon="delete" v-if="!person.confirmRemoval" @click="toggleConfirmation(person)"></q-btn>
-                <q-btn flat round color="red" icon="delete_forever" v-else @click="removePerson(person.id)"></q-btn>
-            </q-card-actions>
-        </q-card>
+      <q-card bordered class="full-width" v-for="person in sortedPeople" :key="person.id">
+        <q-card-section :class="{ 'text-deep-orange-6': person.role === 'shepherd' }">
+          <h3 class="q-ma-none">{{ person.name }}</h3>
+          <p class="text-subtitle1 q-ma-none">{{ person.location }}
+            <span v-if="person.role === 'shepherd'"> (Shepherd)</span>
+          </p>
+        </q-card-section>
+        <q-separator />
+        <q-card-actions class="justify-around q-px-md">
+          <q-btn flat round color="gray" icon="delete" v-if="!person.confirmRemoval"
+            @click="toggleConfirmation(person)"></q-btn>
+          <q-btn flat round color="red" icon="delete_forever" v-else @click="removePerson(person.id)"></q-btn>
+        </q-card-actions>
+      </q-card>
+    </div>
   </div>
-</div>
 </template>
 
 <script lang="ts">
@@ -61,5 +62,4 @@ export default defineComponent({
     grid-template-columns: 1fr 1fr 1fr;
   }
 }
-
 </style>

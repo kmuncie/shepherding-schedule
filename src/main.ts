@@ -1,29 +1,29 @@
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import { Quasar, QUploader } from 'quasar'
+import { createApp } from "vue";
+import { createPinia } from "pinia";
+import { Quasar, QUploader } from "quasar";
 
 // Import icon libraries
-import '@quasar/extras/material-icons-outlined/material-icons-outlined.css'
+import "@quasar/extras/material-icons-outlined/material-icons-outlined.css";
 
 // A few examples for animations from Animate.css:
 // import @quasar/extras/animate/fadeIn.css
 // import @quasar/extras/animate/fadeOut.css
 
 // Import Quasar css
-import 'quasar/src/css/index.sass'
+import "quasar/src/css/index.sass";
 
-import App from './App.vue'
-import router from './router'
+import App from "./App.vue";
+import router from "./router";
 
-import './assets/main.css'
+import "./assets/main.css";
 
-const app = createApp(App)
+const app = createApp(App);
 
-app.use(createPinia())
-app.use(router)
+app.use(createPinia());
+app.use(router);
 app.use(Quasar, {
-    plugins: {}, // import Quasar plugins and add here
-    /*
+  plugins: {}, // import Quasar plugins and add here
+  /*
     config: {
       brand: {
         // primary: '#e46262',
@@ -35,6 +35,6 @@ app.use(Quasar, {
       // ..and many more (check Installation card on each Quasar component/directive/plugin)
     }
     */
-  })
+});
 
-app.mount('#app')
+app.mount("#app");

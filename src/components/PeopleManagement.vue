@@ -3,27 +3,18 @@
     <h1>People Management</h1>
 
     <h2>Add Person</h2>
-    <q-form
-      @submit="addNewPerson"
-      @reset="onReset"
-      class="q-gutter-md"
-    >
-      <q-input filled v-model="newPerson.name" :dense="dense" type="text" placeholder="Name" required>
+    <q-form @submit="addNewPerson" class="q-gutter-md">
+      <q-input dense filled v-model="newPerson.name" type="text" placeholder="Name" required>
         <template v-slot:prepend>
           <q-icon name="person" />
         </template>
       </q-input>
-      <q-input filled v-model="newPerson.location" :dense="dense" type="text" placeholder="Location" required>
+      <q-input dense filled v-model="newPerson.location" type="text" placeholder="Location" required>
         <template v-slot:prepend>
           <q-icon name="place" />
         </template>
       </q-input>
-      <q-toggle
-        v-model="newPerson.role"
-        label="Shepherd"
-        true-value="shepherd"
-        false-value="sheep"
-      /> 
+      <q-toggle v-model="newPerson.role" label="Shepherd" true-value="shepherd" false-value="sheep" />
       <q-btn color="primary" label="Add Person" type="submit" />
     </q-form>
   </div>

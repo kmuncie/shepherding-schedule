@@ -7,8 +7,8 @@
       </div>
 
       <div>
-        <q-select dense filled id="sheep" v-model="selectedSheepId" :options="peopleOptions" label="Sheep" option-value="id"
-          option-label="name" emit-value map-options />
+        <q-select dense filled id="sheep" v-model="selectedSheepId" :options="peopleOptions" label="Sheep"
+          option-value="id" option-label="name" emit-value map-options />
       </div>
 
       <div>

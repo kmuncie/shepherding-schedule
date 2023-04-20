@@ -14,11 +14,10 @@ import { RouterLink, RouterView } from 'vue-router'
     </nav>
   </header>
 
-  <RouterView class="routerView"/>
+  <RouterView class="routerView" />
 </template>
 
 <style scoped>
-
 header {
   display: grid;
   grid-template-columns: auto 1fr 1fr;
@@ -31,13 +30,13 @@ img {
 
 h1 {
   clip: rect(1px, 1px, 1px, 1px);
-clip-path: inset(50%);
-height: 1px;
-width: 1px;
-margin: -1px;
-overflow: hidden;
-padding: 0;
-position: absolute;
+  clip-path: inset(50%);
+  height: 1px;
+  width: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
 }
 
 nav {
@@ -64,7 +63,5 @@ nav a:first-of-type {
   border: 0;
 }
 
-@media (min-width: 1024px) {
-
-}
+@media (min-width: 1024px) {}
 </style>
