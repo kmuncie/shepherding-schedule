@@ -129,5 +129,9 @@ export const usePeopleStore = defineStore("people", {
       };
       reader.readAsText(file);
     },
+    clearPeopleData() {
+      this.people = [];
+      localStorage.removeItem(PEOPLE_STORAGE_KEY);
+    },
   },
 });
