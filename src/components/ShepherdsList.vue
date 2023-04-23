@@ -9,11 +9,11 @@
         </q-card-section>
         <ul v-if="shepherd.meetings && shepherd.meetings.length > 0" class="q-ma-none">
           <li v-for="meeting in shepherd.meetings" :key="meeting.id">
-            <div v-if="meeting.shepherdId === shepherd.id"
+            <div
               @click="() => { meeting.completed = !meeting.completed; updateMeetingCompletion(shepherd.id, meeting.id, meeting.completed); }">
               <q-chip square :class="{ 'text-orange-10': !meeting.completed }">
-                Q{{ meeting.quarter }} {{ meeting.year }} - {{ getMeetingDisplayName(shepherd.id, meeting.sheepId,
-                  meeting.shepherdId) }}
+                Q{{ meeting.quarter }} {{ meeting.year }} -
+                {{ getMeetingDisplayName(shepherd.id, meeting.sheepId, meeting.shepherdId) }}
                 <q-icon v-if="meeting.completed" name="check_circle" class="q-ml-xs" />
               </q-chip>
             </div>
@@ -45,13 +45,18 @@ export default defineComponent({
       return shepherds.slice().sort((a, b) => a.name.localeCompare(b.name));
     });
 
-    const getPersonNameById = (id: string) => {
-      const person = peopleStore.$state.people.find((person) => person.id === id);
-      return person ? person.name : '';
-    };
-
     const updateMeetingCompletion = (personId: string, meetingId: string, completed: boolean) => {
       peopleStore.updateMeetingCompletion(personId, meetingId, completed);
+    };
+
+    const getPersonNameById = (id: string) => {
+      const person = peopleStore.$state.people.find((person) => person.id === id);
+      if (person) {
+        // Add an emoji to the beginning of the returned string depending on the person's role
+        const emoji = person.role === 'shepherd' ? '👨🏻‍🌾 ' : '🐏 ';
+        return `${emoji}${person.name}`;
+      }
+      return '';
     };
 
     const getMeetingDisplayName = (shepherdId: string, sheepId: string, meetingShepherdId: string) => {
