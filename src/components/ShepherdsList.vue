@@ -49,11 +49,10 @@ export default defineComponent({
       peopleStore.updateMeetingCompletion(personId, meetingId, completed);
     };
 
-    const getPersonNameById = (id: string) => {
+    const getPersonNameById = (id: string, shepherd: boolean) => {
       const person = peopleStore.$state.people.find((person) => person.id === id);
       if (person) {
-        // Add an emoji to the beginning of the returned string depending on the person's role
-        const emoji = person.role === 'shepherd' ? '👨🏻‍🌾 ' : '🐑 ';
+        const emoji = shepherd ? '👨🏻‍🌾 ' : '🐑 ';
         return `${emoji}${person.name}`;
       }
       return '';
@@ -61,9 +60,9 @@ export default defineComponent({
 
     const getMeetingDisplayName = (shepherdId: string, sheepId: string, meetingShepherdId: string) => {
       if (shepherdId === sheepId) {
-        return getPersonNameById(meetingShepherdId);
+        return getPersonNameById(meetingShepherdId, true);
       } else {
-        return getPersonNameById(sheepId);
+        return getPersonNameById(sheepId, false);
       }
     };
 
