@@ -53,7 +53,7 @@ export default defineComponent({
       const person = peopleStore.$state.people.find((person) => person.id === id);
       if (person) {
         // Add an emoji to the beginning of the returned string depending on the person's role
-        const emoji = person.role === 'shepherd' ? '👨🏻‍🌾 ' : '🐏 ';
+        const emoji = person.role === 'shepherd' ? '👨🏻‍🌾 ' : '🐑 ';
         return `${emoji}${person.name}`;
       }
       return '';
