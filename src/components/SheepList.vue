@@ -12,7 +12,7 @@
             <div
               @click="() => { meeting.completed = !meeting.completed; updateMeetingCompletion(sheep.id, meeting.id, meeting.completed); }">
               <q-chip square :class="{ 'text-orange-10': !meeting.completed }">
-                Q{{ meeting.quarter }} {{ meeting.year }} - {{ getPersonNameById(meeting.sheepId) }}
+                Q{{ meeting.quarter }} {{ meeting.year }} - {{ getPersonNameById(meeting.shepherdId) }}
                 <q-icon v-if="meeting.completed" name="check_circle" class="q-ml-xs" />
               </q-chip>
             </div>
