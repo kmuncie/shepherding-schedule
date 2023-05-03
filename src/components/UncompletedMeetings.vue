@@ -28,8 +28,10 @@ export default defineComponent({
          const shepherdsWithUncompletedMeetings = peopleStore.$state.people
             .filter((person) => person.role === 'shepherd')
             .map((shepherd) => {
-               const uncompletedMeetings = shepherd.meetings.filter((meeting) => !meeting.completed);
-               const mappedMeetings = uncompletedMeetings.map((meeting) => {
+                  const uncompletedMeetings = shepherd.meetings.filter(
+                  (meeting) => !meeting.completed && meeting.shepherdId === shepherd.id
+                  );
+                  const mappedMeetings = uncompletedMeetings.map((meeting) => {
                   const partner = peopleStore.$state.people.find((person) => person.id === meeting.sheepId);
                   return {
                      ...meeting,
