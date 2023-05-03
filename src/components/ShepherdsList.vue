@@ -11,7 +11,11 @@
           <li v-for="meeting in shepherd.meetings" :key="meeting.id">
             <div
               @click="() => { meeting.completed = !meeting.completed; updateMeetingCompletion(shepherd.id, meeting.id, meeting.completed); }">
-              <q-chip square :class="{ 'text-orange-10': !meeting.completed }">
+              <q-chip
+              square
+              :class="{ 'text-orange-10': !meeting.completed }"
+              removable
+              @remove="removeMeeting(shepherd.id, meeting.id)">
                 Q{{ meeting.quarter }} {{ meeting.year }} -
                 {{ getMeetingDisplayName(shepherd.id, meeting.sheepId, meeting.shepherdId) }}
                 <q-icon v-if="meeting.completed" name="check_circle" class="q-ml-xs" />
@@ -26,7 +30,7 @@
     </q-expansion-item>
   </div>
 </template>
-  
+
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
 import { usePeopleStore } from '@/stores/people';
@@ -47,6 +51,10 @@ export default defineComponent({
 
     const updateMeetingCompletion = (personId: string, meetingId: string, completed: boolean) => {
       peopleStore.updateMeetingCompletion(personId, meetingId, completed);
+    };
+
+    const removeMeeting = (shepherdId: string, meetingId: string) => {
+      peopleStore.removeMeeting(shepherdId, meetingId);
     };
 
     const getPersonNameById = (id: string, shepherd: boolean) => {
@@ -72,11 +80,12 @@ export default defineComponent({
       getPersonNameById,
       updateMeetingCompletion,
       getMeetingDisplayName,
+      removeMeeting,
     };
   },
 });
 </script>
-  
+
 <style lang="scss" scoped>
 .shepherds-grid {
   display: grid;
@@ -87,10 +96,8 @@ export default defineComponent({
 
 ul {
   padding: 0;
-
   li {
     list-style-type: none;
   }
 }
 </style>
-  

@@ -93,6 +93,18 @@ export const usePeopleStore = defineStore("people", {
         );
       }
     },
+    removeMeeting(shepherdId: string, meetingId: string) {
+      const shepherd = this.people.find((person) => person.id === shepherdId);
+      const meeting = shepherd.meetings.find((m) => m.id === meetingId);
+      const sheepId = meeting.sheepId;
+      const sheep = this.people.find((person) => person.id === sheepId);
+
+      shepherd.meetings = shepherd.meetings.filter((meeting) => meeting.id !== meetingId);
+      sheep.meetings = sheep.meetings.filter((meeting) => meeting.id !== meetingId);
+
+      // Save updated state to local storage
+      localStorage.setItem('people', JSON.stringify(this.people));
+    },
     updateMeetingCompletion(
       shepherdId: string,
       meetingId: string,
