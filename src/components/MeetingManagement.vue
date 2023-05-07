@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-form @submit.prevent="addNewMeeting" class="q-gutter-md">
+    <q-form @submit.prevent="addNewMeeting" class="q-gutter-md q-pa-md">
       <div>
         <q-select dense filled id="shepherd" v-model="selectedShepherdId" :options="shepherdOptions" label="Shepherd"
           option-value="id" option-label="name" emit-value map-options />
@@ -25,7 +25,7 @@
 
   </div>
 </template>
-  
+
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
 import { usePeopleStore } from '@/stores/people';
@@ -75,24 +75,6 @@ export default defineComponent({
       return peopleStore.$state.people.filter(person => person.role === 'shepherd');
     });
 
-    // const getPartnerName = (partnerId: string) => {
-    //   const partner = peopleStore.$state.people.find((person) => person.id === partnerId);
-    //   return partner ? partner.name : '';
-    // };
-
-    // const updateMeetingCompletion = (personId: string, meetingId: string, completed: boolean) => {
-    //   peopleStore.updateMeetingCompletion(personId, meetingId, completed);
-    // };
-
-    // const shepherdsWithUncompletedMeetings = computed(() => {
-    //   return peopleStore.people.filter(person => {
-    //     return person.isShepherd && person.meetings.some(meeting => !meeting.completed);
-    //   }).map(shepherd => {
-    //     const uncompletedMeetings = shepherd.meetings.filter(meeting => !meeting.completed);
-    //     return { ...shepherd, meetings: uncompletedMeetings };
-    //   });
-    // });
-
     return {
       people: peopleStore.$state.people,
       availablePartners,
@@ -105,11 +87,7 @@ export default defineComponent({
       peopleOptions,
       quarterOptions,
       addNewMeeting,
-      // getPartnerName,
-      // updateMeetingCompletion,
-      // shepherdsWithUncompletedMeetings,
     };
   },
 });
 </script>
-  

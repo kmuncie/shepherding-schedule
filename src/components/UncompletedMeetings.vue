@@ -35,7 +35,7 @@ export default defineComponent({
                   const partner = peopleStore.people.find((person) => person.id === meeting.sheepId);
                   return {
                      ...meeting,
-                     partnerName: partner.name,
+                     partnerName: partner?.name,
                   };
                });
 

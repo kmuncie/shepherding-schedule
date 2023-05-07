@@ -2,7 +2,7 @@
   <div>
     <h2>🐑 Sheep</h2>
     <div class="sheep-grid">
-      <q-card class="full-width" v-for="sheep in sortedSheep" :key="sheep.id">
+      <q-card class="full-width shadow-up-2" v-for="sheep in sortedSheep" :key="sheep.id">
         <q-card-section>
           <h3 class="q-ma-none">{{ sheep.name }}</h3>
           <p class="text-subtitle1 q-ma-none">{{ sheep.location }}</p>

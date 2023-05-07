@@ -2,7 +2,7 @@
   <div>
     <h2>People List</h2>
     <div class="card-container">
-      <q-card bordered class="full-width" v-for="person in sortedPeople" :key="person.id">
+      <q-card bordered class="full-width shadow-up-2" v-for="person in sortedPeople" :key="person.id">
         <q-card-section :class="{ 'text-deep-orange-6': person.role === 'shepherd' }">
           <h3 class="q-ma-none">{{ person.name }}</h3>
           <p class="text-subtitle1 q-ma-none">{{ person.location }}
