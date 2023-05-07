@@ -25,14 +25,14 @@ export default defineComponent({
       const peopleStore = usePeopleStore();
 
       const shepherds = computed(() => {
-         const shepherdsWithUncompletedMeetings = peopleStore.$state.people
+         const shepherdsWithUncompletedMeetings = peopleStore.people
             .filter((person) => person.role === 'shepherd')
             .map((shepherd) => {
-                  const uncompletedMeetings = shepherd.meetings.filter(
+               const uncompletedMeetings = shepherd.meetings.filter(
                   (meeting) => !meeting.completed && meeting.shepherdId === shepherd.id
-                  );
-                  const mappedMeetings = uncompletedMeetings.map((meeting) => {
-                  const partner = peopleStore.$state.people.find((person) => person.id === meeting.sheepId);
+               );
+               const mappedMeetings = uncompletedMeetings.map((meeting) => {
+                  const partner = peopleStore.people.find((person) => person.id === meeting.sheepId);
                   return {
                      ...meeting,
                      partnerName: partner.name,
