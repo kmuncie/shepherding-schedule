@@ -7,7 +7,7 @@
             <ul>
                <li v-for="meeting in shepherd.uncompletedMeetings" :key="meeting.id">
                   <q-chip>
-                     {{ meeting.partnerName }} - Q{{ meeting.quarter }} {{ meeting.year }}
+                     {{ meeting.partnerName }} ({{ meeting.partnerLocation }}) - Q{{ meeting.quarter }} {{ meeting.year }}
                   </q-chip>
                </li>
             </ul>
@@ -36,6 +36,7 @@ export default defineComponent({
                   return {
                      ...meeting,
                      partnerName: partner?.name,
+                     partnerLocation: partner?.location,
                   };
                });
 
