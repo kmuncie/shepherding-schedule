@@ -11,10 +11,9 @@
                <li v-for="meeting in shepherd.meetings" :key="meeting.id">
                   <div
                      @click="() => { meeting.completed = !meeting.completed; updateMeetingCompletion(shepherd.id, meeting.id, meeting.completed); }">
-                     <q-chip square :class="{ 'text-orange-10': !meeting.completed }"
+                     <q-chip square :class="{ 'text-red-10': !meeting.completed }"
                         :removable="meeting.shepherdId === shepherd.id" @remove="removeMeeting(shepherd.id, meeting.id)">
-                        Q{{ meeting.quarter }} {{ meeting.year }} -
-                        {{ getMeetingDisplayName(shepherd.id, meeting.sheepId, meeting.shepherdId) }}
+                        Q{{ meeting.quarter }} {{ meeting.year }} - {{ getPersonNameById(meeting.sheepId) }}
                         <q-icon v-if="meeting.completed" name="check_circle" class="q-ml-xs" />
                      </q-chip>
                   </div>
@@ -39,6 +38,11 @@ export default defineComponent({
          return shepherds.slice().sort((a, b) => a.name.localeCompare(b.name));
       });
 
+      const getPersonNameById = (id: string) => {
+         const person = peopleStore.$state.people.find((person) => person.id === id);
+         return person ? person.name : '';
+      };
+
       const updateMeetingCompletion = (personId: string, meetingId: string, completed: boolean) => {
          peopleStore.updateMeetingCompletion(personId, meetingId, completed);
       };
@@ -47,30 +51,12 @@ export default defineComponent({
          peopleStore.removeMeeting(shepherdId, meetingId);
       };
 
-      const getPersonNameById = (id: string, shepherd: boolean) => {
-         const person = peopleStore.$state.people.find((person) => person.id === id);
-         if (person) {
-            const emoji = shepherd ? '👨🏻‍🌾 ' : '🐑 ';
-            return `${emoji}${person.name}`;
-         }
-         return '';
-      };
-
-      const getMeetingDisplayName = (shepherdId: string, sheepId: string, meetingShepherdId: string) => {
-         if (shepherdId === sheepId) {
-            return getPersonNameById(meetingShepherdId, true);
-         } else {
-            return getPersonNameById(sheepId, false);
-         }
-      };
-
       return {
          shepherds,
          sortedShepherds,
-         getPersonNameById,
          updateMeetingCompletion,
-         getMeetingDisplayName,
          removeMeeting,
+         getPersonNameById,
       };
    },
 });
