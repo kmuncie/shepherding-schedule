@@ -14,7 +14,7 @@
                <li v-for="meeting in getFilteredMeetings(sheep.id)" :key="meeting.id">
                   <div
                      @click="() => { meeting.completed = !meeting.completed; updateMeetingCompletion(sheep.id, meeting.id, meeting.completed); }">
-                     <q-chip square :class="{ 'text-red-10': !meeting.completed }">
+                     <q-chip square :class="[ meeting.completed ? 'bg-green-2' : 'text-red-10' ]">
                         Q{{ meeting.quarter }} {{ meeting.year }} - {{ getPersonNameById(meeting.shepherdId) }}
                         <q-icon v-if="meeting.completed" name="check_circle" class="q-ml-xs" />
                      </q-chip>
