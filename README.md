@@ -44,3 +44,24 @@ npm run build
 ```sh
 npm run lint
 ```
+
+## JSON Structure
+
+The main JSON structure consists of an array of objects, each representing an individual (either a shepherd or a sheep). Each object contains the following keys:
+
+   - id: A unique identifier for the individual.
+   - name: The full name of the individual.
+   - location: The location where the individual is based.
+   - role: The role of the individual, either "shepherd" or "sheep".
+   - meetings: An array of meeting objects related to this individual.
+
+### Meeting Object
+
+Each meeting object contains the following keys:
+
+   - id: A unique identifier for the meeting.
+   - shepherdId: The unique ID of the shepherd.
+   - sheepId: The unique ID of the sheep.
+   - quarter: The quarter of the year when the meeting occurs.
+   - year: The year when the meeting occurs.
+   - completed: A boolean indicating whether the meeting has been completed.
