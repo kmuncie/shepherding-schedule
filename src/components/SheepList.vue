@@ -1,34 +1,44 @@
 <template>
-   <div>
-      <h2>🐑 Sheep</h2>
-      <div class="sheep-grid">
-         <q-card class="full-width shadow-up-2" v-for="sheep in sortedSheep" :key="sheep.id">
-            <q-card-section>
-               <h3 class="q-ma-none">
-                  <span v-if="sheep.role === 'shepherd'">👨🏻‍🌾 </span>
-                  {{ sheep.name }}
-               </h3>
-               <p class="text-subtitle1 q-ma-none">{{ sheep.location }}</p>
-            </q-card-section>
-            <ul v-if="sheep.meetings && sheep.meetings.length > 0" class="q-ma-none">
-               <li v-for="meeting in getFilteredMeetings(sheep.id)" :key="meeting.id">
-                  <div
-                     @click="() => { meeting.completed = !meeting.completed; updateMeetingCompletion(sheep.id, meeting.id, meeting.completed); }">
-                     <q-chip square :class="[ meeting.completed ? 'bg-green-2' : 'text-red-10' ]">
-                        Q{{ meeting.quarter }} {{ meeting.year }} - {{ getPersonNameById(meeting.shepherdId) }}
-                        <q-icon v-if="meeting.completed" name="check_circle" class="q-ml-xs" />
-                     </q-chip>
-                  </div>
-               </li>
-            </ul>
-         </q-card>
-      </div>
+<div>
+   <h2>🐑 Sheep</h2>
+   <div class="sheep-grid">
+      <q-card class="full-width shadow-up-2" v-for="sheep in sortedSheep" :key="sheep.id">
+         <q-card-section>
+            <h3 class="q-ma-none">
+               <span v-if="sheep.role === 'shepherd'">👨🏻‍🌾 </span>
+               {{ sheep.name }}
+            </h3>
+            <p class="text-subtitle1 q-ma-none">{{ sheep.location }}
+               <!-- Display the year and quarter of the latest completed meeting -->
+               <span v-if="sheep.latestCompletedMeeting">
+                  | Latest: Q{{ sheep.latestCompletedMeeting.quarter }} {{ sheep.latestCompletedMeeting.year }}
+               </span>
+            </p>
+         </q-card-section>
+         <ul v-if="sheep.meetings && sheep.meetings.length > 0" class="q-ma-none">
+            <li v-for="meeting in getFilteredMeetings(sheep.id)" :key="meeting.id">
+               <div @click="() => { meeting.completed = !meeting.completed; updateMeetingCompletion(sheep.id, meeting.id, meeting.completed); }">
+                  <q-chip square :class="[ meeting.completed ? 'bg-green-2' : 'text-red-10' ]">
+                     Q{{ meeting.quarter }} {{ meeting.year }} - {{ getPersonNameById(meeting.shepherdId) }}
+                     <q-icon v-if="meeting.completed" name="check_circle" class="q-ml-xs" />
+                  </q-chip>
+               </div>
+            </li>
+         </ul>
+      </q-card>
+
    </div>
+</div>
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue';
-import { usePeopleStore } from '@/stores/people';
+import {
+   defineComponent,
+   computed
+} from 'vue';
+import {
+   usePeopleStore
+} from '@/stores/people';
 
 export default defineComponent({
    setup() {

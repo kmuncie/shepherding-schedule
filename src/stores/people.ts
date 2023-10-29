@@ -10,6 +10,7 @@ export interface Meeting {
    quarter: number;
    year: number;
    completed: boolean;
+   completedDate?: string;
 }
 
 export interface Person {
@@ -19,6 +20,7 @@ export interface Person {
    role: string;
    confirmRemoval?: boolean;
    meetings: Meeting[];
+   latestCompletedMeeting?: Meeting;
 }
 
 const PEOPLE_STORAGE_KEY = "people";
@@ -27,6 +29,26 @@ const getStoredPeople = (): Person[] => {
    const storedPeople = localStorage.getItem(PEOPLE_STORAGE_KEY);
    return storedPeople ? JSON.parse(storedPeople) : [];
 };
+
+// This helper function will update 'latestCompletedMeeting' for a given person
+function updateLatestCompletedMeeting(person: Person) {
+   const completedMeetings = person.meetings.filter((m) => m.completed);
+
+   // If there are no completed meetings, set latestCompletedMeeting to null
+   if (completedMeetings.length === 0) {
+      person.latestCompletedMeeting = undefined;
+      return;
+   }
+   // Sort the completed meetings by completedDate
+   const sortedCompletedMeetings = completedMeetings.sort(
+      (a, b) =>
+         new Date(b.completedDate!).getTime() -
+         new Date(a.completedDate!).getTime()
+   );
+
+   // Update the latestCompletedMeeting to the one with the most recent completedDate
+   person.latestCompletedMeeting = sortedCompletedMeetings[0];
+}
 
 export const usePeopleStore = defineStore("people", {
    state: () => ({
@@ -115,9 +137,11 @@ export const usePeopleStore = defineStore("people", {
             shepherd.meetings = shepherd.meetings.filter(
                (m) => m.id !== meetingId
             );
+            updateLatestCompletedMeeting(shepherd);
          }
          if (sheep && meeting) {
             sheep.meetings = sheep.meetings.filter((m) => m.id !== meetingId);
+            updateLatestCompletedMeeting(sheep);
          }
 
          // Save updated state to local storage
@@ -128,12 +152,40 @@ export const usePeopleStore = defineStore("people", {
          meetingId: string,
          completed: boolean
       ) {
-         this.people.forEach((person) => {
-            console.log(person);
+         const currentDate = new Date().toISOString();
+
+         const relevantPeople = this.people.filter((person) =>
+            person.meetings.some((m) => m.id === meetingId)
+         );
+
+         relevantPeople.forEach((person) => {
             const meeting = person.meetings.find((m) => m.id === meetingId);
+
             if (meeting) {
                meeting.completed = completed;
+
+               if (completed) {
+                  meeting.completedDate = currentDate;
+               }
             }
+
+            // Filter only completed meetings where the person is a sheep.
+            const completedMeetings = person.meetings
+               .filter((m) => m.completed && m.sheepId === person.id)
+               .sort(
+                  (a, b) =>
+                     new Date(b.completedDate || "").getTime() -
+                     new Date(a.completedDate || "").getTime()
+               );
+
+               if (completedMeetings.length > 0) {
+                  console.log(`Setting latestCompletedMeeting for sheep ${person.id}`);
+                  person.latestCompletedMeeting = completedMeetings[0];
+              } else {
+                  console.log(`Unsetting latestCompletedMeeting for sheep ${person.id}`);
+                  person.latestCompletedMeeting = undefined;
+              }
+
          });
 
          localStorage.setItem(
