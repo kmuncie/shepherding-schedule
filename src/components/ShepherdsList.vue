@@ -10,7 +10,7 @@
             <ul v-if="shepherd.meetings && shepherd.meetings.length > 0" class="q-ma-none">
                <li v-for="meeting in shepherd.meetings" :key="meeting.id">
                   <div
-                     @click="() => { meeting.completed = !meeting.completed; updateMeetingCompletion(shepherd.id, meeting.id, meeting.completed); }">
+                     @click="() => { meeting.completed = !meeting.completed; updateMeetingCompletion(meeting.id, meeting.completed); }">
                      <q-chip square :class="[meeting.completed ? 'bg-green-2' : 'text-red-10']"
                         :removable="meeting.shepherdId === shepherd.id" @remove="removeMeeting(shepherd.id, meeting.id)">
                         Q{{ meeting.quarter }} {{ meeting.year }} - {{ personNameById(meeting.sheepId) }}

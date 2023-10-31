@@ -32,13 +32,14 @@ const getStoredPeople = (): Person[] => {
 
 // This helper function will update 'latestCompletedMeeting' for a given person
 function updateLatestCompletedMeeting(person: Person) {
-   const completedMeetings = person.meetings.filter((m) => m.completed);
+   // Filter only completed meetings where the person is a sheep.
+   const completedMeetings = person.meetings.filter((m) => m.completed && m.sheepId === person.id);
 
-   // If there are no completed meetings, set latestCompletedMeeting to null
    if (completedMeetings.length === 0) {
       person.latestCompletedMeeting = undefined;
       return;
    }
+
    // Sort the completed meetings by completedDate
    const sortedCompletedMeetings = completedMeetings.sort(
       (a, b) =>
@@ -49,6 +50,7 @@ function updateLatestCompletedMeeting(person: Person) {
    // Update the latestCompletedMeeting to the one with the most recent completedDate
    person.latestCompletedMeeting = sortedCompletedMeetings[0];
 }
+
 
 export const usePeopleStore = defineStore("people", {
    state: () => ({
@@ -147,47 +149,33 @@ export const usePeopleStore = defineStore("people", {
          // Save updated state to local storage
          localStorage.setItem("people", JSON.stringify(this.people));
       },
-      updateMeetingCompletion(
-         shepherdId: string,
-         meetingId: string,
-         completed: boolean
-      ) {
+      updateMeetingCompletion(meetingId: string, completed: boolean) {
          const currentDate = new Date().toISOString();
 
+         // Filter people who are involved in the meeting with the given meetingId.
          const relevantPeople = this.people.filter((person) =>
             person.meetings.some((m) => m.id === meetingId)
          );
 
          relevantPeople.forEach((person) => {
+            // Find the specific meeting by its ID
             const meeting = person.meetings.find((m) => m.id === meetingId);
 
             if (meeting) {
+               // Update the 'completed' status of the meeting
                meeting.completed = completed;
 
+               // Update the 'completedDate' if the meeting is completed
                if (completed) {
                   meeting.completedDate = currentDate;
                }
             }
 
-            // Filter only completed meetings where the person is a sheep.
-            const completedMeetings = person.meetings
-               .filter((m) => m.completed && m.sheepId === person.id)
-               .sort(
-                  (a, b) =>
-                     new Date(b.completedDate || "").getTime() -
-                     new Date(a.completedDate || "").getTime()
-               );
-
-               if (completedMeetings.length > 0) {
-                  console.log(`Setting latestCompletedMeeting for sheep ${person.id}`);
-                  person.latestCompletedMeeting = completedMeetings[0];
-              } else {
-                  console.log(`Unsetting latestCompletedMeeting for sheep ${person.id}`);
-                  person.latestCompletedMeeting = undefined;
-              }
-
+            // Update 'latestCompletedMeeting' for this person
+            updateLatestCompletedMeeting(person);
          });
 
+         // Store the updated 'people' array to localStorage
          localStorage.setItem(
             PEOPLE_STORAGE_KEY,
             JSON.stringify(markRaw(this.people))

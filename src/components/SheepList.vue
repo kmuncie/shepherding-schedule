@@ -72,7 +72,7 @@ export default defineComponent({
       };
 
       const updateMeetingCompletion = (sheepId: string, meetingId: string, completed: boolean) => {
-         peopleStore.updateMeetingCompletion(sheepId, meetingId, completed);
+         peopleStore.updateMeetingCompletion(meetingId, completed);
       };
 
       return {
