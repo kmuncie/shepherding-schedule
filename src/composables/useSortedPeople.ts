@@ -1,5 +1,5 @@
 import { computed } from 'vue';
-import { usePeopleStore } from '@/stores/people';  // Update the import path
+import { usePeopleStore } from '@/stores/people'; 
 
 export function useSortedPeople(role?: string) {
   const peopleStore = usePeopleStore();

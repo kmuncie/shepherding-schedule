@@ -1,65 +1,52 @@
 <template>
-<div class="shepherds-list">
-   <h2>👨🏻‍🌾 Shepherds</h2>
-   <div class="shepherds-grid">
-      <q-card class="full-width shadow-up-2" v-for="shepherd in sortedShepherds" :key="shepherd.id">
-         <q-card-section>
-            <h3 class="q-ma-none">{{ shepherd.name }}</h3>
-            <p class="text-subtitle1 q-ma-none">{{ shepherd.location }}</p>
-         </q-card-section>
-         <ul v-if="shepherd.meetings && shepherd.meetings.length > 0" class="q-ma-none">
-            <li v-for="meeting in shepherd.meetings" :key="meeting.id">
-               <div @click="() => { meeting.completed = !meeting.completed; updateMeetingCompletion(shepherd.id, meeting.id, meeting.completed); }">
-                  <q-chip square :class="[ meeting.completed ? 'bg-green-2' : 'text-red-10' ]" :removable="meeting.shepherdId === shepherd.id" @remove="removeMeeting(shepherd.id, meeting.id)">
-                     Q{{ meeting.quarter }} {{ meeting.year }} - {{ getPersonNameById(meeting.sheepId) }}
-                     <q-icon v-if="meeting.completed" name="check_circle" class="q-ml-xs" />
-                  </q-chip>
-               </div>
-            </li>
-         </ul>
-      </q-card>
+   <div class="shepherds-list">
+      <h2>👨🏻‍🌾 Shepherds</h2>
+      <div class="shepherds-grid">
+         <q-card class="full-width shadow-up-2" v-for="shepherd in sortedPeople" :key="shepherd.id">
+            <q-card-section>
+               <h3 class="q-ma-none">{{ shepherd.name }}</h3>
+               <p class="text-subtitle1 q-ma-none">{{ shepherd.location }}</p>
+            </q-card-section>
+            <ul v-if="shepherd.meetings && shepherd.meetings.length > 0" class="q-ma-none">
+               <li v-for="meeting in shepherd.meetings" :key="meeting.id">
+                  <div
+                     @click="() => { meeting.completed = !meeting.completed; updateMeetingCompletion(shepherd.id, meeting.id, meeting.completed); }">
+                     <q-chip square :class="[meeting.completed ? 'bg-green-2' : 'text-red-10']"
+                        :removable="meeting.shepherdId === shepherd.id" @remove="removeMeeting(shepherd.id, meeting.id)">
+                        Q{{ meeting.quarter }} {{ meeting.year }} - {{ personNameById(meeting.sheepId) }}
+                        <q-icon v-if="meeting.completed" name="check_circle" class="q-ml-xs" />
+                     </q-chip>
+                  </div>
+               </li>
+            </ul>
+         </q-card>
+      </div>
    </div>
-</div>
 </template>
 
 <script lang="ts">
 import {
-   computed,
    defineComponent
 } from 'vue';
-import {
-   usePeopleStore
-} from '@/stores/people';
-import {
-   useSortedPeople
-} from '@/composables/useSortedPeople';
-import {
-   useMeetingActions
-} from '@/composables/useMeetingActions';
+import { useSortedPeople } from '@/composables/useSortedPeople';
+import { useMeetingActions } from '@/composables/useMeetingActions';
+import { usePeopleById } from '@/composables/usePeopleById';
 
 export default defineComponent({
    setup() {
-      const peopleStore = usePeopleStore();
       const { sortedPeople } = useSortedPeople('shepherd');
-      const sortedShepherds = computed(() => {
-         return sortedPeople.value; // assuming sortedPeople is a computed ref
-      });
+      const { personNameById } = usePeopleById();
 
       const {
          updateMeetingCompletion,
          removeMeeting
       } = useMeetingActions();
 
-      const getPersonNameById = (id: string) => {
-         const person = peopleStore.$state.people.find((person) => person.id === id);
-         return person ? person.name : '';
-      };
-
       return {
-         sortedShepherds,
+         sortedPeople,
+         personNameById,
          updateMeetingCompletion,
          removeMeeting,
-         getPersonNameById,
       };
    },
 });

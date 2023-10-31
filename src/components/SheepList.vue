@@ -36,9 +36,7 @@ import {
    defineComponent,
    computed
 } from 'vue';
-import {
-   usePeopleStore
-} from '@/stores/people';
+import { usePeopleStore } from '@/stores/people';
 
 export default defineComponent({
    setup() {

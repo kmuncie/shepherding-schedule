@@ -21,12 +21,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue';
+import { defineComponent } from 'vue';
 import { usePeopleStore } from '@/stores/people';
+// import { usePeopleById } from '@/composables/usePeopleById';
+import { useSortedPeople } from '@/composables/useSortedPeople';
+// import { useMeetingActions } from '@/composables/useMeetingActions';
 
 export default defineComponent({
   setup() {
     const peopleStore = usePeopleStore();
+    const { sortedPeople } = useSortedPeople();
 
     const removePerson = (personId: string) => {
       peopleStore.deletePerson(personId);
@@ -36,15 +40,11 @@ export default defineComponent({
       person.confirmRemoval = !person.confirmRemoval;
     };
 
-    const sortedPeople = computed(() => {
-      return peopleStore.people.slice().sort((a, b) => a.name.localeCompare(b.name));
-    });
-
     return {
-      people: peopleStore.$state.people,
+      sortedPeople,
       removePerson,
       toggleConfirmation,
-      sortedPeople,
+      useSortedPeople
     };
   },
 });
