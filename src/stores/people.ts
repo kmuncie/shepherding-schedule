@@ -21,6 +21,7 @@ export interface Person {
    confirmRemoval?: boolean;
    meetings: Meeting[];
    latestCompletedMeeting?: Meeting;
+   departed: boolean;
 }
 
 const PEOPLE_STORAGE_KEY = "people";
@@ -64,6 +65,7 @@ export const usePeopleStore = defineStore("people", {
             location,
             role,
             meetings: [],
+            departed: false
          };
 
          this.people.push(person);
@@ -82,6 +84,18 @@ export const usePeopleStore = defineStore("people", {
             );
          }
       },
+      toggleDeparted(id: string) {
+         const person = this.people.find((p) => p.id === id);
+         if (person) {
+           // If 'departed' key does not exist, initialize it to false
+           if (person.departed === undefined) {
+             person.departed = false;
+           }
+           // Then toggle the 'departed' status
+           person.departed = !person.departed;
+           localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
+         }
+       },
       addMeeting(
          shepherdId: string,
          sheepId: string,

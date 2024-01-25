@@ -37,10 +37,21 @@ export default defineComponent({
     const selectedShepherdId = ref('');
     const selectedSheepId = ref('');
     const selectedQuarter = ref('');
-    const selectedYear = ref('2023');
+    const selectedYear = ref('2024');
 
-    const shepherdOptions = computed(() => shepherds.value.map((s) => ({ id: s.id, name: s.name })));
-    const peopleOptions = computed(() => availablePartners.value.map((p) => ({ id: p.id, name: p.name })));
+    // Filter out departed shepherds
+    const shepherds = computed(() => {
+      return peopleStore.$state.people.filter(person => person.role === 'shepherd' && !person.departed);
+    });
+
+    // Filter out departed people
+    const availablePartners = computed(() => {
+      return peopleStore.$state.people.filter(person => !person.departed && person.id !== selectedShepherdId.value);
+    });
+
+    const shepherdOptions = computed(() => shepherds.value.map(s => ({ id: s.id, name: s.name })));
+    const peopleOptions = computed(() => availablePartners.value.map(p => ({ id: p.id, name: p.name })));
+
     const quarterOptions = [
       { label: "Q1", value: 1 },
       { label: "Q2", value: 2 },
@@ -66,14 +77,6 @@ export default defineComponent({
       selectedQuarter.value = '';
       selectedYear.value = '2023';
     };
-
-    const availablePartners = computed(() => {
-      return peopleStore.$state.people.filter((person) => person.id !== selectedShepherdId.value);
-    });
-
-    const shepherds = computed(() => {
-      return peopleStore.$state.people.filter(person => person.role === 'shepherd');
-    });
 
     return {
       people: peopleStore.$state.people,

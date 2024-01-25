@@ -2,52 +2,36 @@
    <div>
       <h2>People List</h2>
       <div class="card-container">
-         <q-card
-            bordered
-            class="full-width shadow-up-2"
-            v-for="person in sortedPeople"
-            :key="person.id"
-         >
-            <q-card-section
-               :class="{ 'text-deep-orange-6': person.role === 'shepherd' }"
-            >
+         <q-card bordered class="full-width shadow-up-2" v-for="person in sortedPeople" :key="person.id">
+            <q-card-section :class="{ 'text-deep-orange-6': person.role === 'shepherd', 'text-grey-5': person.departed }">
                <h3 class="q-ma-none">{{ person.name }}</h3>
                <p class="text-subtitle1 q-ma-none">
                   {{ person.location }}
                   <span v-if="person.role === 'shepherd'"> (Shepherd)</span>
+                  <q-chip outline :color="person.departed ? 'red' : 'grey-5'" :text-color="person.departed ? 'red' : 'grey-5'"
+                  size="xs" icon="directions_run"
+                  clickable @click="toggleDepartedStatus(person.id)">
+                  Departed
+               </q-chip>
                </p>
             </q-card-section>
             <q-separator />
-            <q-expansion-item
-               label="Meetings"
-               icon="event_note"
-               v-model="expanded"
-            >
-               <div
-                  v-for="meeting in person.meetings.filter(
-                     (m) => m.sheepId === person.id
-                  )"
-                  :key="meeting.id"
-               >
-                  <div
-                     @click="
-                        () => {
-                           meeting.completed = !meeting.completed;
-                           updateMeetingCompletion(
-                              meeting.id,
-                              meeting.completed
-                           );
-                        }
-                     "
-                  >
-                     <q-chip
-                        square
-                        :class="[
-                           meeting.completed ? 'bg-green-2' : 'text-red-10',
-                        ]"
-                        :removable="meeting.shepherdId === meeting.shepherdId"
-                        @remove="removeMeeting(meeting.shepherdId, meeting.id)"
-                     >
+            <q-expansion-item label="Meetings" icon="event_note" v-model="expanded">
+               <div v-for="meeting in person.meetings.filter(
+                  (m) => m.sheepId === person.id
+               )" :key="meeting.id">
+                  <div @click="() => {
+                     meeting.completed = !meeting.completed;
+                     updateMeetingCompletion(
+                        meeting.id,
+                        meeting.completed
+                     );
+                  }
+                     ">
+                     <q-chip square :class="[
+                        meeting.completed ? 'bg-green-2' : 'text-red-10',
+                     ]" :removable="meeting.shepherdId === meeting.shepherdId"
+                        @remove="removeMeeting(meeting.shepherdId, meeting.id)">
                         Q{{ meeting.quarter }} {{ meeting.year }} -
                         {{ personNameById(meeting.shepherdId) }}
                      </q-chip>
@@ -55,22 +39,9 @@
                </div>
             </q-expansion-item>
             <q-card-actions class="justify-around q-px-md">
-               <q-btn
-                  flat
-                  round
-                  color="gray"
-                  icon="delete"
-                  v-if="!person.confirmRemoval"
-                  @click="toggleConfirmation(person)"
-               ></q-btn>
-               <q-btn
-                  flat
-                  round
-                  color="red"
-                  icon="delete_forever"
-                  v-else
-                  @click="removePerson(person.id)"
-               ></q-btn>
+               <q-btn flat round color="gray" icon="delete" v-if="!person.confirmRemoval"
+                  @click="toggleConfirmation(person)"></q-btn>
+               <q-btn flat round color="red" icon="delete_forever" v-else @click="removePerson(person.id)"></q-btn>
             </q-card-actions>
          </q-card>
       </div>
@@ -100,6 +71,10 @@ export default defineComponent({
          person.confirmRemoval = !person.confirmRemoval;
       };
 
+      const toggleDepartedStatus = (personId: string) => {
+         peopleStore.toggleDeparted(personId);
+      };
+
       return {
          sortedPeople,
          personNameById,
@@ -109,6 +84,7 @@ export default defineComponent({
          updateMeetingCompletion,
          removeMeeting,
          expanded: ref(true),
+         toggleDepartedStatus,
       };
    },
 });

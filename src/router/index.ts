@@ -14,6 +14,11 @@ const router = createRouter({
       name: "PeopleManagement",
       component: () => import("../views/PeopleManagementView.vue"),
     },
+    {
+      path: "/reports",
+      name: "Reports",
+      component: () => import("../views/ReportsView.vue"),
+    },
     // {
     //   path: '/meetings',
     //   name: 'MeetingManagement',
