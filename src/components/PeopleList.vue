@@ -110,8 +110,4 @@ export default defineComponent({
 .q-card-section-content {
    flex-grow: 1;
 }
-
-.q-card-section-actions {
-   /* Adjust as needed */
-}
 </style>
