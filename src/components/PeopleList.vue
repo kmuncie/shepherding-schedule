@@ -29,19 +29,27 @@
                </div>
             </q-card-section>
             <q-separator />
-            <q-card-section>
-            <q-chip v-for="meeting in person.meetings.filter(
-               (m) => m.sheepId === person.id
-            )" :key="meeting.id" :class="[meeting.completed ? 'bg-green-2' : 'text-red-10']"
-               :removable="meeting.shepherdId === meeting.shepherdId" @click="() => {
-                     meeting.completed = !meeting.completed;
-                     updateMeetingCompletion(meeting.id, meeting.completed);
-                  }"
-                  @remove="removeMeeting(meeting.shepherdId, meeting.id)" clickable>
-               Q{{ meeting.quarter }} {{ meeting.year }} -
-               {{ personNameById(meeting.shepherdId) }}
-            </q-chip>
+
+            <q-card-section horizontal>
+            <q-card-section >
+
+               <MeetingScheduler :person="person" />
             </q-card-section>
+            <q-separator vertical />
+            <q-card-section >
+               <q-chip v-for="meeting in person.meetings.filter(
+                  (m) => m.sheepId === person.id
+               )" :key="meeting.id" :class="[meeting.completed ? 'bg-green-2' : 'text-red-10']"
+                  :removable="meeting.shepherdId === meeting.shepherdId" @click="() => {
+                        meeting.completed = !meeting.completed;
+                        updateMeetingCompletion(meeting.id, meeting.completed);
+                     }"
+                  @remove="removeMeeting(meeting.shepherdId, meeting.id)" clickable>
+                  Q{{ meeting.quarter }} {{ meeting.year }} -
+                  {{ personNameById(meeting.shepherdId) }}
+               </q-chip>
+            </q-card-section>
+         </q-card-section>
          </q-card>
       </div>
    </div>
@@ -53,8 +61,12 @@ import { usePeopleStore } from "@/stores/people";
 import { usePeopleById } from "@/composables/usePeopleById";
 import { useSortedPeople } from "@/composables/useSortedPeople";
 import { useMeetingActions } from "@/composables/useMeetingActions";
+import MeetingScheduler from "./MeetingScheduler.vue";
 
 export default defineComponent({
+   components: {
+      MeetingScheduler
+   },
    setup() {
       const peopleStore = usePeopleStore();
       const { personNameById } = usePeopleById();
@@ -93,12 +105,6 @@ export default defineComponent({
    display: grid;
    grid-template-columns: 1fr;
    gap: 1rem;
-}
-
-@media (min-width: 1024px) {
-   .card-container {
-      grid-template-columns: 1fr 1fr;
-   }
 }
 
 .q-card-section-flex {

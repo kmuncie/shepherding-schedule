@@ -11,6 +11,8 @@
                   </span>
                </p>
             </q-card-section>
+            <q-separator />
+            <q-card-section>
             <ul v-if="shepherd.meetings && shepherd.meetings.length > 0" class="q-ma-none">
                <li v-for="meeting in getUncompletedMeetings(shepherd.id)" :key="meeting.id">
                   <div
@@ -23,6 +25,7 @@
                   </div>
                </li>
             </ul>
+         </q-card-section>
          </q-card>
       </div>
    </div>
