@@ -2,7 +2,7 @@
 <template>
    <q-form @submit="scheduleMeeting" class="q-gutter-md">
       <q-select v-model="selectedShepherdId" :options="shepherdOptions" label="Shepherd" option-value="id"
-         option-label="name" emit-value map-options :disable="person.role === 'shepherd'" />
+         option-label="name" emit-value map-options />
       <q-select v-model="selectedQuarter" :options="quarterOptions" label="Quarter" emit-value map-options />
       <q-input v-model.number="selectedYear" type="number" min="2023" step="1" label="Year" />
       <q-btn type="submit" color="primary" label="Schedule Meeting" />
