@@ -30,6 +30,7 @@ export default defineComponent({
 /* .home-grid, */
 .reports {
    display: grid;
+   gap: 50px;
    grid-template-columns: 1fr;
    width: 100%;
 }
