@@ -21,6 +21,11 @@
 import { defineComponent, computed } from 'vue';
 import { usePeopleStore } from '@/stores/people'; // Adjust the import path as necessary
 
+ // Define the YearData type
+ type YearData = {
+   [key: string]: number;
+ };
+
 export default defineComponent({
    setup() {
       const peopleStore = usePeopleStore();
@@ -48,7 +53,7 @@ export default defineComponent({
 
       const meetingsByYear = computed(() => {
          const years = [2023, 2024];
-         const yearData: YearData = {};
+         const yearData: Record<number, YearData> = {};
 
          years.forEach(year => {
             yearData[year] = { Q1: 0, Q2: 0, Q3: 0, Q4: 0 };
