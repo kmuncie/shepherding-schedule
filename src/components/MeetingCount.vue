@@ -73,7 +73,7 @@ export default defineComponent({
       });
 
       const meetingsByYear = computed(() => {
-         const years = [2023, 2024];
+         const years = [2023, 2024, 2025];
          const yearData: Record<number, YearData> = {};
          const countedMeetings = new Set<string>();
 
