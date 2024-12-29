@@ -5,7 +5,6 @@
    </div>
    <div class="reports">
       <UncompletedMeetings />
-      <CompletedMeetings />
    </div>
 </template>
 
@@ -14,13 +13,11 @@ import { defineComponent } from 'vue';
 import ShepherdsList from '@/components/ShepherdsList.vue';
 // import SheepList from '@/components/SheepList.vue';
 import UncompletedMeetings from '@/components/UncompletedMeetings.vue';
-import CompletedMeetings from '@/components/CompletedMeetings.vue';
 
 export default defineComponent({
    components: {
       ShepherdsList,
       UncompletedMeetings,
-      CompletedMeetings,
       // SheepList,
    },
 });
