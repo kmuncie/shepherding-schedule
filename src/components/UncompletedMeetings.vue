@@ -69,12 +69,6 @@ interface Shepherd {
    uncompletedMeetings: Meeting[];
 }
 
-interface ShepherdWithQuarters extends Shepherd {
-   meetingsByQuarter: {
-      [key: string]: Meeting[];
-   };
-}
-
 export default defineComponent({
    setup() {
       const peopleStore = usePeopleStore();
