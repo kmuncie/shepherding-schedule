@@ -14,10 +14,25 @@
                   <h3 class="q-ma-none">{{ person.name }}</h3>
                   <p class="text-subtitle1 q-ma-none">
                      {{ person.location }}
-                     <span v-if="person.role === 'shepherd'"> (Shepherd)</span>
-                     <q-chip outline :color="person.departed ? 'red' : 'grey-6'"
-                        :text-color="person.departed ? 'white' : 'grey-9'" size="xs" icon="directions_run" clickable
-                        @click="toggleDepartedStatus(person.id)">
+                     <q-chip
+                        clickable
+                        @click="toggleRole(person.id)"
+                        :color="person.role === 'shepherd' ? 'deep-orange-6' : 'grey'"
+                        text-color="white"
+                        size="sm"
+                        icon="person"
+                     >
+                        {{ person.role === 'shepherd' ? 'Shepherd' : 'Sheep' }}
+                     </q-chip>
+                     <q-chip
+                        outline
+                        :color="person.departed ? 'red' : 'grey-6'"
+                        :text-color="person.departed ? 'white' : 'grey-9'"
+                        size="xs"
+                        icon="directions_run"
+                        clickable
+                        @click="toggleDepartedStatus(person.id)"
+                     >
                         Departed
                      </q-chip>
                   </p>
@@ -31,25 +46,24 @@
             <q-separator />
 
             <q-card-section horizontal>
-            <q-card-section >
-
-               <MeetingScheduler :person="person" />
+               <q-card-section>
+                  <MeetingScheduler :person="person" />
+               </q-card-section>
+               <q-separator vertical />
+               <q-card-section>
+                  <q-chip v-for="meeting in person.meetings.filter(
+                     (m) => m.sheepId === person.id
+                  )" :key="meeting.id" :class="[meeting.completed ? 'bg-green-2' : 'text-red-10']"
+                     :removable="meeting.shepherdId === meeting.shepherdId" @click="() => {
+                           meeting.completed = !meeting.completed;
+                           updateMeetingCompletion(meeting.id, meeting.completed);
+                        }"
+                     @remove="removeMeeting(meeting.shepherdId, meeting.id)" clickable>
+                     Q{{ meeting.quarter }} {{ meeting.year }} -
+                     {{ personNameById(meeting.shepherdId) }}
+                  </q-chip>
+               </q-card-section>
             </q-card-section>
-            <q-separator vertical />
-            <q-card-section >
-               <q-chip v-for="meeting in person.meetings.filter(
-                  (m) => m.sheepId === person.id
-               )" :key="meeting.id" :class="[meeting.completed ? 'bg-green-2' : 'text-red-10']"
-                  :removable="meeting.shepherdId === meeting.shepherdId" @click="() => {
-                        meeting.completed = !meeting.completed;
-                        updateMeetingCompletion(meeting.id, meeting.completed);
-                     }"
-                  @remove="removeMeeting(meeting.shepherdId, meeting.id)" clickable>
-                  Q{{ meeting.quarter }} {{ meeting.year }} -
-                  {{ personNameById(meeting.shepherdId) }}
-               </q-chip>
-            </q-card-section>
-         </q-card-section>
          </q-card>
       </div>
    </div>
@@ -86,6 +100,10 @@ export default defineComponent({
          peopleStore.toggleDeparted(personId);
       };
 
+      const toggleRole = (personId: string) => {
+         peopleStore.toggleRole(personId);
+      };
+
       return {
          sortedPeople,
          personNameById,
@@ -95,6 +113,7 @@ export default defineComponent({
          updateMeetingCompletion,
          removeMeeting,
          toggleDepartedStatus,
+         toggleRole,
       };
    },
 });
@@ -105,6 +124,12 @@ export default defineComponent({
    display: grid;
    grid-template-columns: 1fr;
    gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+   .card-container {
+      grid-template-columns: 1fr 1fr;
+   }
 }
 
 .q-card-section-flex {

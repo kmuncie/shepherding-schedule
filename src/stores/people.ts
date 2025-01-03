@@ -96,6 +96,14 @@ export const usePeopleStore = defineStore("people", {
            localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
          }
        },
+       toggleRole(id: string) {
+         const person = this.people.find((p) => p.id === id);
+         if (person) {
+            // Toggle between 'shepherd' and 'sheep'
+            person.role = person.role === 'shepherd' ? 'sheep' : 'shepherd';
+            localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
+         }
+      },
       addMeeting(
          shepherdId: string,
          sheepId: string,
