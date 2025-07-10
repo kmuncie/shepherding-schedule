@@ -22,13 +22,24 @@ export default defineComponent({
     const clearLocalStorageConfirmed = ref(false);
 
     const exportData = () => {
-      const url = peopleStore.exportPeopleData();
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'people-data.json';
-      link.click();
-      URL.revokeObjectURL(url);
-    };
+  const url = peopleStore.exportPeopleData();
+  const link = document.createElement('a');
+  link.href = url;
+  // Generate a dynamic timestamp using the current local time and offset
+  const now = new Date();
+  // Get timezone offset in minutes (e.g. -240 for -04:00)
+  const tzOffsetMin = now.getTimezoneOffset();
+  // Calculate the sign, hours, and minutes for offset
+  const tzSign = tzOffsetMin > 0 ? '-' : '+';
+  const absOffset = Math.abs(tzOffsetMin);
+  const tzHours = String(Math.floor(absOffset / 60)).padStart(2, '0');
+  const tzMinutes = String(absOffset % 60).padStart(2, '0');
+  // Format timestamp as YYYY-MM-DDTHH-MM-SS-TZ
+  const timestamp = now.toISOString().slice(0,19).replace(/:/g,'-') + tzSign + tzHours + '-' + tzMinutes;
+  link.download = `people-data-${timestamp}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+};
 
     const importData = (files: readonly any[]) => {
       const fileArray = files as File[];
