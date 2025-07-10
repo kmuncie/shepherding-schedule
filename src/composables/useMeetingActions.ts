@@ -11,8 +11,14 @@ export function useMeetingActions() {
     peopleStore.removeMeeting(shepherdId, meetingId);
   };
 
+  const reassignMeetingShepherd = (meetingId: string, newShepherdId: string) => {
+    peopleStore.reassignMeetingShepherd(meetingId, newShepherdId);
+  };
+
   return {
     updateMeetingCompletion,
-    removeMeeting
+    removeMeeting,
+    reassignMeetingShepherd
   };
+
 }

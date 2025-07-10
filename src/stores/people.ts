@@ -60,6 +60,40 @@ export const usePeopleStore = defineStore("people", {
       people: reactive(getStoredPeople()),
    }),
    actions: {
+      reassignMeetingShepherd(meetingId: string, newShepherdId: string) {
+         // Find the meeting and its old shepherd
+         let oldShepherd: Person | undefined;
+         let sheepId: string | undefined;
+         let meeting: Meeting | undefined;
+         for (const person of this.people) {
+            const found = person.meetings.find((m) => m.id === meetingId);
+            if (found && person.role === 'shepherd') {
+               oldShepherd = person;
+               meeting = found;
+               sheepId = found.sheepId;
+               break;
+            }
+         }
+         if (!meeting || !oldShepherd || !sheepId) return;
+         // Remove from old shepherd
+         oldShepherd.meetings = oldShepherd.meetings.filter((m) => m.id !== meetingId);
+         updateLatestCompletedMeeting(oldShepherd);
+         // Add to new shepherd
+         const newShepherd = this.people.find((p) => p.id === newShepherdId);
+         if (!newShepherd) return;
+         const sheep = this.people.find((p) => p.id === sheepId);
+         if (!sheep) return;
+         // Remove from sheep (will add back below)
+         sheep.meetings = sheep.meetings.filter((m) => m.id !== meetingId);
+         // Update shepherdId in meeting
+         const updatedMeeting: Meeting = { ...meeting, shepherdId: newShepherdId };
+         newShepherd.meetings.push(updatedMeeting);
+         sheep.meetings.push(updatedMeeting);
+         updateLatestCompletedMeeting(newShepherd);
+         updateLatestCompletedMeeting(sheep);
+         // Persist
+         localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
+      },
       addPerson(name: string, location: string, role: string) {
          const person: Person = {
             id: uuidv4(),
