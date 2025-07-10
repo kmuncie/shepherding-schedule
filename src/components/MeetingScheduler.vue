@@ -1,4 +1,3 @@
-// New file: src/components/MeetingScheduler.vue
 <template>
    <q-form @submit="scheduleMeeting" class="q-gutter-md">
       <q-select v-model="selectedShepherdId" :options="shepherdOptions" label="Shepherd" option-value="id"
