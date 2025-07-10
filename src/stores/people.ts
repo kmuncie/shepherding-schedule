@@ -28,7 +28,9 @@ const PEOPLE_STORAGE_KEY = "people";
 
 const getStoredPeople = (): Person[] => {
    const storedPeople = localStorage.getItem(PEOPLE_STORAGE_KEY);
-   return storedPeople ? JSON.parse(storedPeople) : [];
+   const people = storedPeople ? JSON.parse(storedPeople) : [];
+   // Make each person object reactive
+   return people.map((person: any) => reactive(person));
 };
 
 // This helper function will update 'latestCompletedMeeting' for a given person

@@ -25,16 +25,17 @@
                         {{ person.role === 'shepherd' ? 'Shepherd' : 'Sheep' }}
                      </q-chip>
                      <q-chip
-                        outline
-                        :color="person.departed ? 'red' : 'grey-6'"
-                        :text-color="person.departed ? 'white' : 'grey-9'"
-                        size="xs"
-                        icon="directions_run"
-                        clickable
-                        @click="toggleDepartedStatus(person.id)"
-                     >
-                        Departed
-                     </q-chip>
+  :outline="!person.departed"
+  :color="person.departed ? 'red' : 'grey-6'"
+  :text-color="person.departed ? 'white' : 'grey-9'"
+  size="xs"
+  :icon="person.departed ? 'cancel' : 'directions_run'"
+  clickable
+  @click="toggleDepartedStatus(person.id)"
+  :label="person.departed ? 'Departed' : 'Mark as Departed'"
+  :title="person.departed ? 'This person is marked as departed. Click to mark as active.' : 'Mark this person as departed.'"
+/>
+
                   </p>
                </div>
                <div class="q-card-section-actions">
