@@ -37,6 +37,18 @@
 />
 
                   </p>
+                  <!-- Display last meeting information -->
+                  <div v-if="person.latestCompletedMeeting" class="text-caption q-mt-sm">
+                     <q-icon name="event" size="xs" class="q-mr-xs" />
+                     Last meeting: {{ formatDate(person.latestCompletedMeeting.completedDate) }}
+                     <br />
+                     <q-icon name="person" size="xs" class="q-mr-xs" />
+                     Shepherd: {{ personNameById(person.latestCompletedMeeting.shepherdId) }}
+                  </div>
+                  <div v-else class="text-caption text-grey-6 q-mt-sm">
+                     <q-icon name="event_busy" size="xs" class="q-mr-xs" />
+                     No completed meetings
+                  </div>
                </div>
                <div class="q-card-section-actions">
                   <q-btn flat round color="gray" icon="delete" v-if="!person.confirmRemoval"
@@ -105,6 +117,16 @@ export default defineComponent({
          peopleStore.toggleRole(personId);
       };
 
+      const formatDate = (dateString: string | undefined) => {
+         if (!dateString) return 'N/A';
+         const date = new Date(dateString);
+         return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+         });
+      };
+
       return {
          sortedPeople,
          personNameById,
@@ -115,6 +137,7 @@ export default defineComponent({
          removeMeeting,
          toggleDepartedStatus,
          toggleRole,
+         formatDate,
       };
    },
 });
