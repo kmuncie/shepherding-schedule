@@ -1,28 +1,135 @@
 <template>
-   <div>
-      <h2>Total Meetings: {{ totalMeetingsCount.total }}</h2>
-      <p>
-         Active: {{ totalMeetingsCount.active }},
-         Completed: {{ totalMeetingsCount.completed }}
-         <small>(Includes 53 meetings completed in 2022 Q4 - 2023 Q1)</small>
-      </p>
-      <div v-for="(yearData, year) in meetingsByYear" :key="year">
-         <h3>{{ year }}</h3>
-         <div v-for="(counts, quarter) in yearData" :key="quarter">
-            <p>{{ quarterLabel(quarter) }}: {{ counts.active }} active, {{ counts.completed }} completed</p>
-         </div>
-      </div>
-      <h2>Shepherd Meetings Count</h2>
-      <ul>
-         <li v-for="shepherd in shepherdsMeetingsCount" :key="shepherd.name">
-            {{ shepherd.name }}: {{ shepherd.activeMeetings }} active, {{ shepherd.completedMeetings }} completed
-         </li>
-      </ul>
+   <div class="meeting-count-container">
+      <!-- Meeting Statistics Overview -->
+      <q-card class="q-mb-md">
+         <q-card-section>
+            <div class="row items-center q-mb-md">
+               <q-icon name="event" size="sm" color="primary" class="q-mr-sm" />
+               <span class="text-h6">Meeting Statistics</span>
+            </div>
+            
+            <div class="stats-row">
+               <div class="stat-item">
+                  <div class="stat-number text-h3 text-weight-bold text-primary">{{ totalMeetingsCount.total }}</div>
+                  <div class="stat-label text-subtitle2 text-grey-7">Total Meetings</div>
+               </div>
+               <q-separator vertical inset />
+               <div class="stat-item">
+                  <div class="stat-number text-h4 text-weight-bold text-orange">{{ totalMeetingsCount.active }}</div>
+                  <div class="stat-label text-subtitle2 text-grey-7">Active</div>
+               </div>
+               <q-separator vertical inset />
+               <div class="stat-item">
+                  <div class="stat-number text-h4 text-weight-bold text-green">{{ totalMeetingsCount.completed }}</div>
+                  <div class="stat-label text-subtitle2 text-grey-7">Completed</div>
+               </div>
+            </div>
+            
+            <q-banner class="bg-blue-1 q-mt-md" dense>
+               <template v-slot:avatar>
+                  <q-icon name="info" color="blue" />
+               </template>
+               <span class="text-caption">Includes 53 meetings completed in 2022 Q4 - 2023 Q1</span>
+            </q-banner>
+         </q-card-section>
+      </q-card>
+
+      <!-- Meetings by Year Accordion -->
+      <q-expansion-item
+         icon="calendar_month"
+         label="Meetings by Quarter"
+         header-class="text-subtitle1"
+         class="q-mb-md"
+      >
+         <q-card>
+            <q-card-section>
+               <q-tabs
+                  v-model="selectedYear"
+                  dense
+                  class="text-grey"
+                  active-color="primary"
+                  indicator-color="primary"
+                  align="justify"
+               >
+                  <q-tab v-for="year in Object.keys(meetingsByYear)" :key="year" :name="year" :label="year" />
+               </q-tabs>
+               
+               <q-separator />
+               
+               <q-tab-panels v-model="selectedYear" animated>
+                  <q-tab-panel v-for="(yearData, year) in meetingsByYear" :key="year" :name="year">
+                     <div class="quarters-grid">
+                        <q-card v-for="(counts, quarter) in yearData" :key="quarter" flat bordered>
+                           <q-card-section class="text-center">
+                              <div class="text-subtitle2 text-weight-bold q-mb-sm">{{ quarterLabel(quarter) }}</div>
+                              <div class="row justify-center q-gutter-sm">
+                                 <q-chip color="orange" text-color="white" icon="schedule">
+                                    {{ counts.active }} Active
+                                 </q-chip>
+                                 <q-chip color="green" text-color="white" icon="check_circle">
+                                    {{ counts.completed }} Done
+                                 </q-chip>
+                              </div>
+                           </q-card-section>
+                        </q-card>
+                     </div>
+                  </q-tab-panel>
+               </q-tab-panels>
+            </q-card-section>
+         </q-card>
+      </q-expansion-item>
+
+      <!-- Shepherd Performance Accordion -->
+      <q-expansion-item
+         icon="person"
+         label="Shepherd Performance"
+         header-class="text-subtitle1"
+      >
+         <q-card>
+            <q-card-section>
+               <q-list separator>
+                  <q-item v-for="shepherd in shepherdsMeetingsCount" :key="shepherd.name">
+                     <q-item-section avatar>
+                        <q-avatar color="deep-orange-6" text-color="white" icon="person" />
+                     </q-item-section>
+                     
+                     <q-item-section>
+                        <q-item-label class="text-weight-bold">{{ shepherd.name }}</q-item-label>
+                        <q-item-label caption>
+                           Total: {{ shepherd.totalMeetings }} meetings
+                        </q-item-label>
+                     </q-item-section>
+                     
+                     <q-item-section side>
+                        <div class="row q-gutter-xs">
+                           <q-chip 
+                              color="orange" 
+                              text-color="white" 
+                              size="sm"
+                              icon="schedule"
+                           >
+                              {{ shepherd.activeMeetings }}
+                           </q-chip>
+                           <q-chip 
+                              color="green" 
+                              text-color="white" 
+                              size="sm"
+                              icon="check"
+                           >
+                              {{ shepherd.completedMeetings }}
+                           </q-chip>
+                        </div>
+                     </q-item-section>
+                  </q-item>
+               </q-list>
+            </q-card-section>
+         </q-card>
+      </q-expansion-item>
    </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue';
+import { defineComponent, computed, ref } from 'vue';
 import { usePeopleStore } from '@/stores/people';
 import { storeToRefs } from 'pinia';
 
@@ -132,18 +239,45 @@ export default defineComponent({
          });
       });
 
+      const currentYear = new Date().getFullYear();
+      const selectedYear = ref(currentYear.toString());
+
       return {
          totalMeetingsCount,
          meetingsByYear,
          quarterLabel,
-         shepherdsMeetingsCount
+         shepherdsMeetingsCount,
+         selectedYear
       };
    },
 });
 </script>
 
 <style scoped>
-h2 {
-   margin-bottom: 0;
+.meeting-count-container {
+   margin-bottom: 2rem;
+}
+
+.stats-row {
+   display: flex;
+   justify-content: space-around;
+   align-items: center;
+   padding: 1rem 0;
+}
+
+.stat-item {
+   text-align: center;
+   flex: 1;
+}
+
+.stat-number {
+   margin-bottom: 0.25rem;
+}
+
+.quarters-grid {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+   gap: 1rem;
+   margin-top: 1rem;
 }
 </style>
