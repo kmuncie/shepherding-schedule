@@ -66,14 +66,28 @@
                <q-card-section>
                   <q-chip v-for="meeting in person.meetings.filter(
                      (m) => m.sheepId === person.id
-                  )" :key="meeting.id" :class="[meeting.completed ? 'bg-green-2' : 'text-red-10']"
-                     :removable="meeting.shepherdId === meeting.shepherdId" @click="() => {
+                  )" :key="meeting.id"
+                     :class="[isPendingDelete(meeting.id) ? 'pending-delete' : '']"
+                     :style="getChipStyle(meeting.completed)"
+                     :removable="meeting.shepherdId === meeting.shepherdId"
+                     @click="() => {
+                        if (!isPendingDelete(meeting.id)) {
                            meeting.completed = !meeting.completed;
                            updateMeetingCompletion(meeting.id, meeting.completed);
-                        }"
-                     @remove="removeMeeting(meeting.shepherdId, meeting.id)" clickable>
-                     Q{{ meeting.quarter }} {{ meeting.year }} -
-                     {{ personNameById(meeting.shepherdId) }}
+                        }
+                     }"
+                     @remove="confirmDeleteMeeting(meeting.shepherdId, meeting.id)"
+                     clickable
+                  >
+                     <template v-if="isPendingDelete(meeting.id)">
+                        <q-icon name="warning" class="q-mr-xs text-red" />
+                        Click again to delete
+                     </template>
+                     <template v-else>
+                        <span :style="{ color: getQuarterColor(meeting.quarter) }">Q{{ meeting.quarter }}</span>
+                        <span :style="{ color: getYearColor(meeting.year) }" class="q-ml-xs">{{ meeting.year }}</span>
+                        <span class="q-ml-xs">- {{ personNameById(meeting.shepherdId) }}</span>
+                     </template>
                   </q-chip>
                </q-card-section>
             </q-card-section>
@@ -88,6 +102,7 @@ import { usePeopleStore } from "@/stores/people";
 import { usePeopleById } from "@/composables/usePeopleById";
 import { useSortedPeople } from "@/composables/useSortedPeople";
 import { useMeetingActions } from "@/composables/useMeetingActions";
+import { useMeetingColors } from "@/composables/useMeetingColors";
 import MeetingScheduler from "./MeetingScheduler.vue";
 
 export default defineComponent({
@@ -99,7 +114,8 @@ export default defineComponent({
       const { personNameById } = usePeopleById();
 
       const { sortedPeople } = useSortedPeople();
-      const { updateMeetingCompletion, removeMeeting } = useMeetingActions();
+      const { updateMeetingCompletion, confirmDeleteMeeting, isPendingDelete } = useMeetingActions();
+      const { getChipStyle, getYearColor, getQuarterColor } = useMeetingColors();
 
       const removePerson = (personId: string) => {
          peopleStore.deletePerson(personId);
@@ -120,10 +136,10 @@ export default defineComponent({
       const formatDate = (dateString: string | undefined) => {
          if (!dateString) return 'N/A';
          const date = new Date(dateString);
-         return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
+         return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
          });
       };
 
@@ -134,7 +150,11 @@ export default defineComponent({
          toggleConfirmation,
          useSortedPeople,
          updateMeetingCompletion,
-         removeMeeting,
+         confirmDeleteMeeting,
+         isPendingDelete,
+         getChipStyle,
+         getYearColor,
+         getQuarterColor,
          toggleDepartedStatus,
          toggleRole,
          formatDate,
@@ -164,5 +184,16 @@ export default defineComponent({
 
 .q-card-section-content {
    flex-grow: 1;
+}
+
+.pending-delete {
+   background-color: #ffebee !important;
+   border: 2px solid #ef5350 !important;
+   animation: pulse-delete 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-delete {
+   from { opacity: 1; }
+   to { opacity: 0.7; }
 }
 </style>

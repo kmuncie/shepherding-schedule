@@ -27,10 +27,22 @@
                     @dragend="onChipDragEnd"
                     @click="() => { meeting.completed = !meeting.completed; updateMeetingCompletion(meeting.id, meeting.completed); }"
                   >
-                    <q-chip square :class="[meeting.completed ? 'bg-green-2' : 'text-red-10']"
-                      :removable="meeting.shepherdId === shepherd.id" @remove="removeMeeting(shepherd.id, meeting.id)">
-                      Q{{ meeting.quarter }} {{ meeting.year }} - {{ personNameById(meeting.sheepId) }}
-                      <q-icon v-if="meeting.completed" name="check_circle" class="q-ml-xs" />
+                    <q-chip square
+                      :class="[isPendingDelete(meeting.id) ? 'pending-delete' : '']"
+                      :style="getChipStyle(meeting.completed)"
+                      :removable="meeting.shepherdId === shepherd.id"
+                      @remove="confirmDeleteMeeting(shepherd.id, meeting.id)"
+                    >
+                      <template v-if="isPendingDelete(meeting.id)">
+                        <q-icon name="warning" class="q-mr-xs text-red" />
+                        Click again to delete
+                      </template>
+                      <template v-else>
+                        <span :style="{ color: getQuarterColor(meeting.quarter) }">Q{{ meeting.quarter }}</span>
+                        <span :style="{ color: getYearColor(meeting.year) }" class="q-ml-xs">{{ meeting.year }}</span>
+                        <span class="q-ml-xs">- {{ personNameById(meeting.sheepId) }}</span>
+                        <q-icon v-if="meeting.completed" name="check_circle" class="q-ml-xs text-green" />
+                      </template>
                     </q-chip>
                   </div>
                 </li>
@@ -46,6 +58,7 @@ import { defineComponent, ref } from 'vue';
 import { useSortedPeople } from '@/composables/useSortedPeople';
 import { useMeetingActions } from '@/composables/useMeetingActions';
 import { usePeopleById } from '@/composables/usePeopleById';
+import { useMeetingColors } from '@/composables/useMeetingColors';
 
 export default defineComponent({
    setup() {
@@ -53,7 +66,8 @@ export default defineComponent({
       const draggedMeeting = ref<any>(null);
       const { sortedPeople } = useSortedPeople('shepherd');
       const { personNameById } = usePeopleById();
-      const { updateMeetingCompletion, removeMeeting, reassignMeetingShepherd } = useMeetingActions();
+      const { updateMeetingCompletion, confirmDeleteMeeting, reassignMeetingShepherd, isPendingDelete } = useMeetingActions();
+      const { getChipStyle, getYearColor, getQuarterColor } = useMeetingColors();
 
       function getUncompletedMeetings(shepherdId: string) {
          const shepherd = sortedPeople.value.find(person => person.id === shepherdId);
@@ -93,7 +107,8 @@ export default defineComponent({
          getUncompletedMeetings,
          personNameById,
          updateMeetingCompletion,
-         removeMeeting,
+         confirmDeleteMeeting,
+         isPendingDelete,
          reassignMeetingShepherd,
          onChipDragStart,
          onChipDragEnd,
@@ -101,6 +116,9 @@ export default defineComponent({
          onDragOver,
          onDragLeave,
          dragOverShepherdId,
+         getChipStyle,
+         getYearColor,
+         getQuarterColor,
       };
 
    },
@@ -133,4 +151,14 @@ ul {
    cursor: move;
 }
 
+.pending-delete {
+   background-color: #ffebee !important;
+   border: 2px solid #ef5350 !important;
+   animation: pulse-delete 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-delete {
+   from { opacity: 1; }
+   to { opacity: 0.7; }
+}
 </style>
