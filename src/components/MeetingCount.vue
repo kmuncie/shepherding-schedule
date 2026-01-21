@@ -7,7 +7,7 @@
                <q-icon name="event" size="sm" color="primary" class="q-mr-sm" />
                <span class="text-h6">Meeting Statistics</span>
             </div>
-            
+
             <div class="stats-row">
                <div class="stat-item">
                   <div class="stat-number text-h3 text-weight-bold text-primary">{{ totalMeetingsCount.total }}</div>
@@ -24,7 +24,7 @@
                   <div class="stat-label text-subtitle2 text-grey-7">Completed</div>
                </div>
             </div>
-            
+
             <q-banner class="bg-blue-1 q-mt-md" dense>
                <template v-slot:avatar>
                   <q-icon name="info" color="blue" />
@@ -53,9 +53,9 @@
                >
                   <q-tab v-for="year in Object.keys(meetingsByYear)" :key="year" :name="year" :label="year" />
                </q-tabs>
-               
+
                <q-separator />
-               
+
                <q-tab-panels v-model="selectedYear" animated>
                   <q-tab-panel v-for="(yearData, year) in meetingsByYear" :key="year" :name="year">
                      <div class="quarters-grid">
@@ -92,27 +92,27 @@
                      <q-item-section avatar>
                         <q-avatar color="deep-orange-6" text-color="white" icon="person" />
                      </q-item-section>
-                     
+
                      <q-item-section>
                         <q-item-label class="text-weight-bold">{{ shepherd.name }}</q-item-label>
                         <q-item-label caption>
                            Total: {{ shepherd.totalMeetings }} meetings
                         </q-item-label>
                      </q-item-section>
-                     
+
                      <q-item-section side>
                         <div class="row q-gutter-xs">
-                           <q-chip 
-                              color="orange" 
-                              text-color="white" 
+                           <q-chip
+                              color="orange"
+                              text-color="white"
                               size="sm"
                               icon="schedule"
                            >
                               {{ shepherd.activeMeetings }}
                            </q-chip>
-                           <q-chip 
-                              color="green" 
-                              text-color="white" 
+                           <q-chip
+                              color="green"
+                              text-color="white"
                               size="sm"
                               icon="check"
                            >
@@ -180,7 +180,7 @@ export default defineComponent({
       });
 
       const meetingsByYear = computed(() => {
-         const years = [2023, 2024, 2025];
+         const years = [2023, 2024, 2025, 2026];
          const yearData: Record<number, YearData> = {};
          const countedMeetings = new Set<string>();
 
