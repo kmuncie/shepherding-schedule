@@ -64,9 +64,7 @@
                </q-card-section>
                <q-separator vertical />
                <q-card-section>
-                  <q-chip v-for="meeting in person.meetings.filter(
-                     (m) => m.sheepId === person.id
-                  )" :key="meeting.id"
+                  <q-chip v-for="meeting in getSortedMeetings(person.meetings, person.id)" :key="meeting.id"
                      :class="[isPendingDelete(meeting.id) ? 'pending-delete' : '']"
                      :style="getChipStyle(meeting.completed)"
                      :removable="meeting.shepherdId === meeting.shepherdId"
@@ -143,6 +141,15 @@ export default defineComponent({
          });
       };
 
+      const getSortedMeetings = (meetings: any[], personId: string) => {
+         return meetings
+            .filter(m => m.sheepId === personId)
+            .sort((a, b) => {
+               if (a.year !== b.year) return a.year - b.year;
+               return a.quarter - b.quarter;
+            });
+      };
+
       return {
          sortedPeople,
          personNameById,
@@ -155,6 +162,7 @@ export default defineComponent({
          getChipStyle,
          getYearColor,
          getQuarterColor,
+         getSortedMeetings,
          toggleDepartedStatus,
          toggleRole,
          formatDate,

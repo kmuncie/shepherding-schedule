@@ -71,10 +71,14 @@ export default defineComponent({
 
       function getUncompletedMeetings(shepherdId: string) {
          const shepherd = sortedPeople.value.find(person => person.id === shepherdId);
-         return shepherd ?
-            shepherd.meetings.filter(meeting =>
-               !meeting.completed && meeting.sheepId !== shepherdId
-            ) : [];
+         if (!shepherd) return [];
+
+         return shepherd.meetings
+            .filter(meeting => !meeting.completed && meeting.sheepId !== shepherdId)
+            .sort((a, b) => {
+               if (a.year !== b.year) return a.year - b.year;
+               return a.quarter - b.quarter;
+            });
       }
 
       function onChipDragStart(meeting: any) {
