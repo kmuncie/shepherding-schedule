@@ -87,41 +87,44 @@
       >
          <q-card>
             <q-card-section>
-               <q-list separator>
-                  <q-item v-for="shepherd in shepherdsMeetingsCount" :key="shepherd.name">
-                     <q-item-section avatar>
-                        <q-avatar color="deep-orange-6" text-color="white" icon="person" />
-                     </q-item-section>
+               <q-tabs
+                  v-model="performanceYear"
+                  dense
+                  class="text-grey q-mb-md"
+                  active-color="primary"
+                  indicator-color="primary"
+                  align="justify"
+               >
+                  <q-tab v-for="year in availableYears" :key="year" :name="year" :label="String(year)" />
+               </q-tabs>
 
-                     <q-item-section>
-                        <q-item-label class="text-weight-bold">{{ shepherd.name }}</q-item-label>
-                        <q-item-label caption>
-                           Total: {{ shepherd.totalMeetings }} meetings
-                        </q-item-label>
-                     </q-item-section>
-
-                     <q-item-section side>
-                        <div class="row q-gutter-xs">
-                           <q-chip
-                              color="orange"
-                              text-color="white"
-                              size="sm"
-                              icon="schedule"
-                           >
-                              {{ shepherd.activeMeetings }}
-                           </q-chip>
-                           <q-chip
-                              color="green"
-                              text-color="white"
-                              size="sm"
-                              icon="check"
-                           >
-                              {{ shepherd.completedMeetings }}
-                           </q-chip>
+               <div class="shepherds-performance-grid">
+                  <div v-for="shepherd in shepherdsQuarterlyData" :key="shepherd.name" class="shepherd-card">
+                     <div class="shepherd-header">
+                        <q-avatar color="deep-orange-6" text-color="white" size="sm" icon="person" />
+                        <span class="text-weight-bold q-ml-sm">{{ shepherd.name }}</span>
+                        <q-chip color="green" text-color="white" size="xs" class="q-ml-auto">
+                           {{ shepherd.yearTotal }} total
+                        </q-chip>
+                     </div>
+                     <div class="quarters-bar-chart">
+                        <div v-for="q in [1, 2, 3, 4]" :key="q" class="quarter-bar-container">
+                           <div class="quarter-label">Q{{ q }}</div>
+                           <div class="bar-track">
+                              <div
+                                 class="bar-fill"
+                                 :style="{ width: getBarWidth(shepherd.quarters[q]) }"
+                              ></div>
+                           </div>
+                           <div class="bar-value">{{ shepherd.quarters[q] }}</div>
                         </div>
-                     </q-item-section>
-                  </q-item>
-               </q-list>
+                     </div>
+                  </div>
+               </div>
+
+               <div v-if="shepherdsQuarterlyData.length === 0" class="text-center text-grey-6 q-pa-md">
+                  No shepherd data available
+               </div>
             </q-card-section>
          </q-card>
       </q-expansion-item>
@@ -222,32 +225,65 @@ export default defineComponent({
          return `Quarter ${quarterStr.slice(1)}`;
       };
 
-      const shepherdsMeetingsCount = computed(() => {
+      const availableYears = [2023, 2024, 2025, 2026];
+      const currentYear = new Date().getFullYear();
+      const selectedYear = ref(currentYear.toString());
+      const performanceYear = ref(currentYear);
+
+      const shepherdsQuarterlyData = computed(() => {
          const shepherds = people.value.filter(person => person.role === 'shepherd');
+         const year = performanceYear.value;
 
          return shepherds.map(shepherd => {
-            const meetings = shepherd.meetings.filter(meeting =>
-               meeting.shepherdId !== meeting.sheepId
-            );
+            const quarters: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
+
+            shepherd.meetings.forEach(meeting => {
+               if (
+                  meeting.shepherdId !== meeting.sheepId &&
+                  meeting.completed &&
+                  meeting.year === year
+               ) {
+                  quarters[meeting.quarter]++;
+               }
+            });
+
+            const yearTotal = quarters[1] + quarters[2] + quarters[3] + quarters[4];
 
             return {
                name: shepherd.name,
-               activeMeetings: meetings.filter(m => !m.completed).length,
-               completedMeetings: meetings.filter(m => m.completed).length,
-               totalMeetings: meetings.length
+               quarters,
+               yearTotal
             };
-         });
+         }).sort((a, b) => b.yearTotal - a.yearTotal);
       });
 
-      const currentYear = new Date().getFullYear();
-      const selectedYear = ref(currentYear.toString());
+      const maxMeetingsInQuarter = computed(() => {
+         let max = 1;
+         shepherdsQuarterlyData.value.forEach(shepherd => {
+            for (let q = 1; q <= 4; q++) {
+               if (shepherd.quarters[q] > max) {
+                  max = shepherd.quarters[q];
+               }
+            }
+         });
+         return max;
+      });
+
+      const getBarWidth = (count: number) => {
+         if (count === 0) return '0%';
+         const percentage = (count / maxMeetingsInQuarter.value) * 100;
+         return `${Math.max(percentage, 5)}%`;
+      };
 
       return {
          totalMeetingsCount,
          meetingsByYear,
          quarterLabel,
-         shepherdsMeetingsCount,
-         selectedYear
+         shepherdsQuarterlyData,
+         selectedYear,
+         performanceYear,
+         availableYears,
+         getBarWidth
       };
    },
 });
@@ -279,5 +315,65 @@ export default defineComponent({
    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
    gap: 1rem;
    margin-top: 1rem;
+}
+
+.shepherds-performance-grid {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+   gap: 1rem;
+}
+
+.shepherd-card {
+   background: #f8f9fa;
+   border-radius: 8px;
+   padding: 1rem;
+}
+
+.shepherd-header {
+   display: flex;
+   align-items: center;
+   margin-bottom: 0.75rem;
+}
+
+.quarters-bar-chart {
+   display: flex;
+   flex-direction: column;
+   gap: 0.5rem;
+}
+
+.quarter-bar-container {
+   display: flex;
+   align-items: center;
+   gap: 0.5rem;
+}
+
+.quarter-label {
+   width: 24px;
+   font-size: 0.75rem;
+   font-weight: 600;
+   color: #666;
+}
+
+.bar-track {
+   flex: 1;
+   height: 16px;
+   background: #e0e0e0;
+   border-radius: 4px;
+   overflow: hidden;
+}
+
+.bar-fill {
+   height: 100%;
+   background: linear-gradient(90deg, #4caf50, #81c784);
+   border-radius: 4px;
+   transition: width 0.3s ease;
+}
+
+.bar-value {
+   width: 20px;
+   font-size: 0.75rem;
+   font-weight: 600;
+   text-align: right;
+   color: #333;
 }
 </style>
