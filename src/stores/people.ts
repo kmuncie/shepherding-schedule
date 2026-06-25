@@ -177,6 +177,17 @@ export const usePeopleStore = defineStore("people", {
             );
          }
       },
+      removeMeetingsForBlock(year: number, quarters: number[]) {
+         this.people.forEach((person) => {
+            person.meetings = person.meetings.filter(
+               (m) => !(m.year === year && quarters.includes(m.quarter))
+            );
+         });
+         localStorage.setItem(
+            PEOPLE_STORAGE_KEY,
+            JSON.stringify(markRaw(this.people))
+         );
+      },
       removeMeeting(shepherdId: string, meetingId: string) {
          const shepherd = this.people.find(
             (person) => person.id === shepherdId
