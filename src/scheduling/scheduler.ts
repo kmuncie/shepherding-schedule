@@ -157,9 +157,20 @@ function pickShepherd(
    for (const s of shepherds) {
       if (s.id === sheepId) continue;
       const cost = scoreAssignment(s.id, sheepId, ctx).total;
-      if (best === null || cost < bestCost || (cost === bestCost && s.id < best)) {
+      if (best === null || cost < bestCost) {
          bestCost = cost;
          best = s.id;
+         continue;
+      }
+      // Tie-break: spread work by preferring the least-loaded shepherd (the load
+      // term is flat within the fair-share band, so equal-cost ties are common),
+      // then by id for determinism.
+      if (cost === bestCost) {
+         const sLoad = ctx.assignedCounts.get(s.id) ?? 0;
+         const bestLoad = ctx.assignedCounts.get(best) ?? 0;
+         if (sLoad < bestLoad || (sLoad === bestLoad && s.id < best)) {
+            best = s.id;
+         }
       }
    }
    return best;
