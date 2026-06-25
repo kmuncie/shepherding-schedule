@@ -17,6 +17,9 @@ coverage
 /cypress/videos/
 /cypress/screenshots/
 
+# Local data backups / exports (never commit real people data)
+people-data-*.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
