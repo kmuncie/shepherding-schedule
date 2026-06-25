@@ -56,6 +56,8 @@ Data scale (from the 2026-06-25 backup): 60 active people, 19 active shepherds,
 | Workflow | **Draft → lock/swap → re-optimize → commit** |
 | Architecture | **Local deterministic optimizer only.** No AI, ever. |
 | Visualization | **Yes** — D3 force-directed network graph of past visits |
+| Weight tuning | **Constants now, passed as a parameter** (default = the constants). No in-app tuning UI this round; the parameter seam makes one a future zero-refactor add. Defaults calibrated against the real backup during implementation. |
+| Storage | **Unchanged** — localStorage + JSON export. No SQLite/backend; data size (≈194 KB) makes format a non-issue. Any future durability/multi-device need is a separate effort. |
 | Testing | **Skipped for this work** (user explicitly authorized). Logic kept pure for easy future testing. |
 
 ## Data model & the pairing graph
@@ -82,9 +84,11 @@ This index is also the data source for the visual network graph.
 ## Cost function (`cost.ts`)
 
 For a candidate assignment **shepherd `S` → person `P`** in a target block, the
-cost is the sum of the terms below. All weights are **named, exported
-constants** so they are easy to calibrate. Starting values are suggestions to be
-tuned against the real data.
+cost is the sum of the terms below. Weights are **named, exported constants**
+collected in a single `Weights` object that the cost/solver functions accept as
+an optional parameter (defaulting to those constants), so a future tuning UI
+needs no refactor. Starting values are suggestions to be tuned against the real
+data.
 
 - **Self-pairing:** `S === P` → infeasible, excluded entirely.
 - **Freshness:** fresh pair → `0`. Otherwise
