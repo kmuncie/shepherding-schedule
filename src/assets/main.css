@@ -23,3 +23,15 @@ a,
 @media (min-width: 1024px) {
 
 }
+
+/* Let chips with long names wrap at spaces (not mid-word) instead of
+   overflowing. min-height keeps the normal height for short chips, and the
+   content wraps only when it is genuinely too wide for its container. */
+.q-chip {
+  height: auto;
+  min-height: 2em;
+}
+
+.q-chip .q-chip__content {
+  white-space: normal;
+}
