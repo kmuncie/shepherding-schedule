@@ -33,7 +33,9 @@ export interface CostContext {
    sameYearShepherds: Map<string, Set<string>>;
    // shepherdId -> visits assigned so far in this run (drives load balancing)
    assignedCounts: Map<string, number>;
-   fairShare: number; // active people / shepherds
+   // shepherdId -> target visit count for this block, proportional to the
+   // shepherd's weight. Load cost grows once a shepherd exceeds their target.
+   targetByShepherd: Map<string, number>;
    weights: Weights;
 }
 
@@ -73,9 +75,10 @@ export function scoreAssignment(
    const sameSet = ctx.sameYearShepherds.get(sheepId);
    const sameShepherd = sameSet && sameSet.has(shepherdId) ? w.sameShepherdYear : 0;
 
-   // Load: grows once a shepherd exceeds the fair share.
+   // Load: grows once a shepherd exceeds their weighted target share.
    const assigned = ctx.assignedCounts.get(shepherdId) ?? 0;
-   const load = w.loadOverFair * Math.max(0, assigned - ctx.fairShare);
+   const target = ctx.targetByShepherd.get(shepherdId) ?? 0;
+   const load = w.loadOverFair * Math.max(0, assigned - target);
 
    return {
       total: freshness + sameShepherd + load,

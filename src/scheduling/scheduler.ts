@@ -37,11 +37,31 @@ export function generateSchedule(input: SchedulerInput): ScheduleDraft {
 
    const active = people.filter((p) => !p.departed);
    const shepherds = active.filter((p) => p.role === 'shepherd');
+   // People who actually receive a visit this block. Anyone flagged
+   // excludeAsSheep (e.g. a shepherd who is never himself shepherded) is left
+   // out of the pool but still available as a shepherd above.
+   const sheepPool = active.filter((p) => !p.excludeAsSheep);
    const graph = new PairingGraph(people);
-   const fairShare =
-      shepherds.length > 0 ? active.length / shepherds.length : Infinity;
    const currentTimeIndex = timeIndex(year, quarters[0]);
    const sameYearShepherds = buildSameYearShepherds(people, year);
+
+   // Each shepherd's target visit count is proportional to their weight, so the
+   // total still equals the number of sheep. Undefined/invalid weight = 1.
+   const weightOf = (s: Person): number => {
+      const w = s.shepherdWeight;
+      return typeof w === 'number' && Number.isFinite(w) && w >= 0 ? w : 1;
+   };
+   const totalWeight = shepherds.reduce((sum, s) => sum + weightOf(s), 0);
+   const targetByShepherd = new Map<string, number>();
+   for (const s of shepherds) {
+      const target =
+         totalWeight > 0
+            ? (sheepPool.length * weightOf(s)) / totalWeight
+            : shepherds.length > 0
+              ? sheepPool.length / shepherds.length
+              : Infinity;
+      targetByShepherd.set(s.id, target);
+   }
 
    const assignedCounts = new Map<string, number>();
    const ctx: CostContext = {
@@ -49,7 +69,7 @@ export function generateSchedule(input: SchedulerInput): ScheduleDraft {
       currentTimeIndex,
       sameYearShepherds,
       assignedCounts,
-      fairShare,
+      targetByShepherd,
       weights,
    };
 
@@ -70,7 +90,7 @@ export function generateSchedule(input: SchedulerInput): ScheduleDraft {
       shepherds.filter(
          (s) => s.id !== sheepId && graph.get(s.id, sheepId) === undefined
       ).length;
-   const toAssign = active
+   const toAssign = sheepPool
       .filter((p) => !lockedSheep.has(p.id))
       .sort((a, b) => {
          const diff = freshOptions(a.id) - freshOptions(b.id);
@@ -86,14 +106,14 @@ export function generateSchedule(input: SchedulerInput): ScheduleDraft {
    }
 
    // Local-search improvement (freshness + same-shepherd only; see design notes).
-   improveBySwaps(active, lockedSheep, assignments, ctx);
+   improveBySwaps(sheepPool, lockedSheep, assignments, ctx);
 
    // Quarter assignment: spread each shepherd across both quarters, keep totals even.
    const quarterBySheep = assignQuarters(assignments, quarters, lockedQuarters);
 
    const visits: ProposedVisit[] = [];
    const unassigned: string[] = [];
-   for (const person of active) {
+   for (const person of sheepPool) {
       const shepherdId = assignments.get(person.id);
       if (!shepherdId) {
          unassigned.push(person.id);
@@ -121,6 +141,14 @@ export function generateSchedule(input: SchedulerInput): ScheduleDraft {
 
 function addCount(map: Map<string, number>, key: string, delta: number): void {
    map.set(key, (map.get(key) ?? 0) + delta);
+}
+
+// How full a shepherd is relative to their weighted target. A shepherd with no
+// target (weight 0) is treated as fully loaded so they are picked only if forced.
+function fillRatio(shepherdId: string, ctx: CostContext): number {
+   const target = ctx.targetByShepherd.get(shepherdId) ?? 0;
+   const assigned = ctx.assignedCounts.get(shepherdId) ?? 0;
+   return target > 0 ? assigned / target : Infinity;
 }
 
 // For each person, the shepherds already visiting them in the target year
@@ -162,13 +190,13 @@ function pickShepherd(
          best = s.id;
          continue;
       }
-      // Tie-break: spread work by preferring the least-loaded shepherd (the load
-      // term is flat within the fair-share band, so equal-cost ties are common),
-      // then by id for determinism.
+      // Tie-break: spread work by preferring the shepherd furthest below their
+      // weighted target (lowest fill ratio = assigned / target), so higher-weight
+      // shepherds absorb proportionally more. Then by id for determinism.
       if (cost === bestCost) {
-         const sLoad = ctx.assignedCounts.get(s.id) ?? 0;
-         const bestLoad = ctx.assignedCounts.get(best) ?? 0;
-         if (sLoad < bestLoad || (sLoad === bestLoad && s.id < best)) {
+         const sRatio = fillRatio(s.id, ctx);
+         const bestRatio = fillRatio(best, ctx);
+         if (sRatio < bestRatio || (sRatio === bestRatio && s.id < best)) {
             best = s.id;
          }
       }
