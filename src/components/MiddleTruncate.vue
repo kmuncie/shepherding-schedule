@@ -8,6 +8,9 @@
 // visible (e.g. "Christ…merson"). Pure CSS, so it adapts as the container resizes.
 import { defineComponent, computed } from 'vue';
 
+// Non-breaking space (U+00A0).
+const NBSP = String.fromCharCode(160);
+
 export default defineComponent({
    name: 'MiddleTruncate',
    props: {
@@ -15,15 +18,21 @@ export default defineComponent({
       tailChars: { type: Number, default: 6 },
    },
    setup(props) {
+      // The lead and tail render as two adjacent inline-flex pieces; a normal
+      // space at either edge would be collapsed by the browser and visually
+      // merge two words. Substitute non-breaking spaces so every space survives.
+      // The hover tooltip (:title) still uses the original text with real spaces.
+      const keepSpaces = (s: string) => s.replace(/ /g, NBSP);
+      const split = computed(() => props.text.length > props.tailChars + 1);
       const lead = computed(() =>
-         props.text.length > props.tailChars + 1
-            ? props.text.slice(0, props.text.length - props.tailChars)
-            : props.text
+         keepSpaces(
+            split.value
+               ? props.text.slice(0, props.text.length - props.tailChars)
+               : props.text
+         )
       );
       const tail = computed(() =>
-         props.text.length > props.tailChars + 1
-            ? props.text.slice(props.text.length - props.tailChars)
-            : ''
+         split.value ? keepSpaces(props.text.slice(props.text.length - props.tailChars)) : ''
       );
       return { lead, tail };
    },
