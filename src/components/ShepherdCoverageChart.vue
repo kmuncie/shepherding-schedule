@@ -3,7 +3,9 @@
       <div class="text-h6 q-mb-sm">📊 Shepherd Coverage</div>
       <div class="text-caption text-grey-7 q-mb-md">
          How much of the flock each shepherd has visited at least once — distinct
-         people visited out of everyone they could visit. Sorted by coverage.
+         active people visited out of everyone they could visit (colored), plus a
+         gray segment for people they visited who have since departed. Sorted by
+         active coverage.
       </div>
 
       <div v-if="coverage.length === 0" class="no-data text-center text-grey-6 q-pa-lg">
@@ -17,12 +19,21 @@
             <div class="coverage-track">
                <div
                   class="coverage-fill"
-                  :style="{ width: row.percent + '%', backgroundColor: barColor(row.percent) }"
+                  :style="{ width: row.activePercent + '%', backgroundColor: barColor(row.activePercent) }"
+               ></div>
+               <div
+                  v-if="row.departedPercent > 0"
+                  class="coverage-fill coverage-fill--departed"
+                  :style="{ width: row.departedPercent + '%' }"
+                  :title="`${row.departedCount} departed`"
                ></div>
             </div>
             <div class="coverage-value">
-               {{ row.count }} / {{ row.total }}
-               <span class="text-weight-bold">({{ row.percent }}%)</span>
+               {{ row.activeCount }} / {{ row.total }}
+               <span class="text-weight-bold">({{ Math.round(row.activePercent) }}%)</span>
+               <span v-if="row.departedCount > 0" class="coverage-departed-note">
+                  +{{ row.departedCount }} departed
+               </span>
             </div>
          </div>
       </div>
@@ -31,7 +42,8 @@
 
 <script lang="ts">
 // Horizontal bar chart of per-shepherd flock coverage: the share of visitable
-// people each shepherd has visited at least once, sorted high to low.
+// people each shepherd has visited at least once (colored), with an extra gray
+// segment for people they visited who have since departed. Sorted high to low.
 import { defineComponent, computed } from 'vue';
 import { usePeopleStore } from '@/stores/people';
 import { storeToRefs } from 'pinia';
@@ -39,9 +51,11 @@ import { storeToRefs } from 'pinia';
 interface CoverageRow {
    id: string;
    name: string;
-   count: number;
+   activeCount: number;
+   departedCount: number;
    total: number;
-   percent: number;
+   activePercent: number;
+   departedPercent: number;
 }
 
 export default defineComponent({
@@ -54,38 +68,60 @@ export default defineComponent({
          const active = people.value.filter((p) => !p.departed);
          const visitable = active.filter((p) => !p.excludeAsSheep);
          const visitableIds = new Set(visitable.map((p) => p.id));
+         const departedIds = new Set(
+            people.value.filter((p) => p.departed).map((p) => p.id)
+         );
          const shepherds = active.filter((p) => p.role === 'shepherd');
 
-         // shepherdId -> set of distinct visitable people they've visited
-         const visited = new Map<string, Set<string>>();
+         // shepherdId -> sets of distinct active and departed people visited
+         const activeVisited = new Map<string, Set<string>>();
+         const departedVisited = new Map<string, Set<string>>();
+         const add = (map: Map<string, Set<string>>, key: string, value: string) => {
+            let set = map.get(key);
+            if (!set) {
+               set = new Set();
+               map.set(key, set);
+            }
+            set.add(value);
+         };
+
          const seen = new Set<string>();
          for (const person of people.value) {
             for (const m of person.meetings ?? []) {
                if (seen.has(m.id)) continue;
                seen.add(m.id);
                if (m.shepherdId === m.sheepId) continue;
-               if (!visitableIds.has(m.sheepId)) continue;
-               let set = visited.get(m.shepherdId);
-               if (!set) {
-                  set = new Set();
-                  visited.set(m.shepherdId, set);
+               if (visitableIds.has(m.sheepId)) {
+                  add(activeVisited, m.shepherdId, m.sheepId);
+               } else if (departedIds.has(m.sheepId)) {
+                  add(departedVisited, m.shepherdId, m.sheepId);
                }
-               set.add(m.sheepId);
             }
          }
 
          return shepherds
             .map((s) => {
-               const count = visited.get(s.id)?.size ?? 0;
-               // Everyone they could visit (visitable people minus themselves).
+               const activeCount = activeVisited.get(s.id)?.size ?? 0;
+               const departedCount = departedVisited.get(s.id)?.size ?? 0;
+               // Everyone they could currently visit (visitable people minus self).
                const total = visitable.length - (visitableIds.has(s.id) ? 1 : 0);
-               const percent = total > 0 ? Math.round((count / total) * 100) : 0;
-               return { id: s.id, name: s.name, count, total, percent };
+               // Both segments share the same per-person scale so they're comparable.
+               const activePercent = total > 0 ? (activeCount / total) * 100 : 0;
+               const departedPercent = total > 0 ? (departedCount / total) * 100 : 0;
+               return {
+                  id: s.id,
+                  name: s.name,
+                  activeCount,
+                  departedCount,
+                  total,
+                  activePercent,
+                  departedPercent,
+               };
             })
             .sort(
                (a, b) =>
-                  b.percent - a.percent ||
-                  b.count - a.count ||
+                  b.activePercent - a.activePercent ||
+                  b.activeCount - a.activeCount ||
                   a.name.localeCompare(b.name)
             );
       });
@@ -130,6 +166,7 @@ export default defineComponent({
 
 .coverage-track {
    flex: 1 1 auto;
+   display: flex;
    height: 1.1rem;
    background: #eceff1;
    border-radius: 4px;
@@ -138,16 +175,22 @@ export default defineComponent({
 
 .coverage-fill {
    height: 100%;
-   border-radius: 4px;
    transition: width 0.3s ease;
-   min-width: 2px;
+}
+
+.coverage-fill--departed {
+   background-color: #b0bec5;
 }
 
 .coverage-value {
-   flex: 0 0 7.5rem;
+   flex: 0 0 10rem;
    font-size: 0.85rem;
    color: #455a64;
    white-space: nowrap;
+}
+
+.coverage-departed-note {
+   color: #90a4ae;
 }
 
 .no-data {
@@ -164,7 +207,7 @@ export default defineComponent({
       max-width: 6rem;
    }
    .coverage-value {
-      flex-basis: 6rem;
+      flex-basis: 8rem;
    }
 }
 </style>
