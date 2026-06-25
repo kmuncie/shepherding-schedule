@@ -33,9 +33,9 @@
          <CompletedMeetings />
       </div>
 
-      <!-- Visit Network Graph -->
+      <!-- Shepherd Coverage -->
       <div class="report-section">
-         <VisitNetworkChart />
+         <ShepherdCoverageChart />
       </div>
    </div>
  </template>
@@ -46,7 +46,7 @@
  import MeetingCount from '@/components/MeetingCount.vue'
  import CompletedMeetings from '@/components/CompletedMeetings.vue';
  import UnshepherdedReport from '@/components/UnshepherdedReport.vue';
- import VisitNetworkChart from '@/components/VisitNetworkChart.vue';
+ import ShepherdCoverageChart from '@/components/ShepherdCoverageChart.vue';
 
  export default defineComponent({
    components: {
@@ -54,7 +54,7 @@
       MeetingCount,
       CompletedMeetings,
       UnshepherdedReport,
-      VisitNetworkChart,
+      ShepherdCoverageChart,
    },
  });
  </script>
