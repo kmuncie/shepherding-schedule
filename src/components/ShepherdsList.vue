@@ -40,7 +40,8 @@
                       <template v-else>
                         <span :style="{ color: getQuarterColor(meeting.quarter) }">Q{{ meeting.quarter }}</span>
                         <span :style="{ color: getYearColor(meeting.year) }" class="q-ml-xs">{{ meeting.year }}</span>
-                        <span class="q-ml-xs">- {{ personNameById(meeting.sheepId) }}</span>
+                        <span class="q-ml-xs">-</span>
+                        <MiddleTruncate class="q-ml-xs" :text="personNameById(meeting.sheepId)" />
                         <q-icon v-if="meeting.completed" name="check_circle" class="q-ml-xs text-green" />
                       </template>
                     </q-chip>
@@ -59,8 +60,10 @@ import { useSortedPeople } from '@/composables/useSortedPeople';
 import { useMeetingActions } from '@/composables/useMeetingActions';
 import { usePeopleById } from '@/composables/usePeopleById';
 import { useMeetingColors } from '@/composables/useMeetingColors';
+import MiddleTruncate from '@/components/MiddleTruncate.vue';
 
 export default defineComponent({
+   components: { MiddleTruncate },
    setup() {
       const dragOverShepherdId = ref<string | null>(null);
       const draggedMeeting = ref<any>(null);
@@ -153,6 +156,14 @@ ul {
 
 .q-chip {
    cursor: move;
+   width: 100%;
+}
+
+/* Let the chip's content area shrink so the sheep name can middle-truncate
+   instead of overflowing the full-width chip. */
+.q-chip :deep(.q-chip__content) {
+   justify-content: flex-start;
+   min-width: 0;
 }
 
 .pending-delete {
