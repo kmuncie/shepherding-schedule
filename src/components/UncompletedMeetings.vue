@@ -2,52 +2,25 @@
    <div>
       <h3>Uncompleted Meetings</h3>
 
-      <q-btn-toggle
-         v-model="currentView"
-         :options="[
-            { label: 'By Quarter', value: 'quarter' },
-            { label: 'By Shepherd', value: 'shepherd' }
-         ]"
-         class="q-mb-md"
-      />
-
-      <!-- View by Quarter -->
-      <div v-if="currentView === 'quarter'">
-         <div v-for="(meetingGroup, quarterYear) in groupedByQuarter" :key="quarterYear">
-            <h4 class="q-pa-sm q-mb-md bg-primary text-white rounded-borders">{{ quarterYear }}</h4>
-            <ul>
-               <li v-for="shepherd in meetingGroup" :key="shepherd.id">
-                  <strong>{{ shepherd.name }}:</strong>
-                  <ul>
-                     <li v-for="meeting in shepherd.uncompletedMeetings" :key="meeting.id">
-                        <q-chip>
-                           {{ meeting.partnerName }} ({{ meeting.partnerLocation }})
-                        </q-chip>
-                     </li>
-                  </ul>
-               </li>
-            </ul>
-         </div>
+      <div class="row items-center q-gutter-sm q-mb-md">
+         <q-btn-toggle
+            v-model="currentView"
+            :options="[
+               { label: 'By Quarter', value: 'quarter' },
+               { label: 'By Shepherd', value: 'shepherd' }
+            ]"
+         />
+         <q-btn
+            outline
+            color="primary"
+            :icon="copied ? 'check' : 'content_copy'"
+            :label="copied ? 'Copied!' : 'Copy as text'"
+            @click="copy"
+         />
       </div>
 
-      <!-- View by Shepherd -->
-      <div v-else>
-         <div v-for="shepherd in groupedByShepherd" :key="shepherd.id">
-            <h4 class="q-pa-sm q-mb-md bg-primary text-white rounded-borders">{{ shepherd.name }}</h4>
-            <ul>
-               <li v-for="(meetings, quarterYear) in shepherd.meetingsByQuarter" :key="quarterYear">
-                  <strong>{{ quarterYear }}:</strong>
-                  <ul>
-                     <li v-for="meeting in meetings" :key="meeting.id">
-                        <q-chip>
-                           {{ meeting.partnerName }} ({{ meeting.partnerLocation }})
-                        </q-chip>
-                     </li>
-                  </ul>
-               </li>
-            </ul>
-         </div>
-      </div>
+      <!-- Plain text so it pastes cleanly into an email (no chips/styling). -->
+      <pre class="plaintext">{{ plainText }}</pre>
    </div>
 </template>
 
@@ -73,6 +46,7 @@ export default defineComponent({
    setup() {
       const peopleStore = usePeopleStore();
       const currentView = ref('quarter');
+      const copied = ref(false);
 
       const shepherds = computed(() => {
          return peopleStore.people
@@ -96,6 +70,12 @@ export default defineComponent({
             });
       });
 
+      const quarterKeySort = (a: string, b: string) => {
+         const [aQ, aY] = a.split(' ');
+         const [bQ, bY] = b.split(' ');
+         return aY === bY ? aQ.localeCompare(bQ) : Number(aY) - Number(bY);
+      };
+
       const groupedByQuarter = computed(() => {
          const grouped: { [key: string]: Shepherd[] } = {};
 
@@ -114,15 +94,8 @@ export default defineComponent({
             });
          });
 
-         // Sort by year and quarter
-         const sortedKeys = Object.keys(grouped).sort((a, b) => {
-            const [aQ, aY] = a.split(' ');
-            const [bQ, bY] = b.split(' ');
-            return aY === bY ? aQ.localeCompare(bQ) : Number(aY) - Number(bY);
-         });
-
          const sortedGrouped: { [key: string]: Shepherd[] } = {};
-         sortedKeys.forEach((key) => {
+         Object.keys(grouped).sort(quarterKeySort).forEach((key) => {
             sortedGrouped[key] = grouped[key];
          });
 
@@ -141,15 +114,8 @@ export default defineComponent({
                meetingsByQuarter[quarterYear].push(meeting);
             });
 
-            // Sort quarters within each shepherd
-            const sortedQuarters = Object.keys(meetingsByQuarter).sort((a, b) => {
-               const [aQ, aY] = a.split(' ');
-               const [bQ, bY] = b.split(' ');
-               return aY === bY ? aQ.localeCompare(bQ) : Number(aY) - Number(bY);
-            });
-
             const sortedMeetingsByQuarter: { [key: string]: Meeting[] } = {};
-            sortedQuarters.forEach(quarter => {
+            Object.keys(meetingsByQuarter).sort(quarterKeySort).forEach(quarter => {
                sortedMeetingsByQuarter[quarter] = meetingsByQuarter[quarter];
             });
 
@@ -160,22 +126,74 @@ export default defineComponent({
          }).filter(shepherd => Object.keys(shepherd.meetingsByQuarter).length > 0);
       });
 
+      const partnerLine = (meeting: Meeting) => {
+         const name = meeting.partnerName ?? 'Unknown';
+         return meeting.partnerLocation ? `${name} (${meeting.partnerLocation})` : name;
+      };
+
+      const plainText = computed(() => {
+         const lines: string[] = [];
+
+         if (currentView.value === 'quarter') {
+            const groups = groupedByQuarter.value;
+            Object.keys(groups).forEach((quarterYear) => {
+               lines.push(quarterYear);
+               groups[quarterYear].forEach((shepherd) => {
+                  lines.push(`  ${shepherd.name}:`);
+                  shepherd.uncompletedMeetings.forEach((meeting) => {
+                     lines.push(`    - ${partnerLine(meeting)}`);
+                  });
+               });
+               lines.push('');
+            });
+         } else {
+            groupedByShepherd.value.forEach((shepherd) => {
+               lines.push(shepherd.name);
+               Object.keys(shepherd.meetingsByQuarter).forEach((quarterYear) => {
+                  lines.push(`  ${quarterYear}:`);
+                  shepherd.meetingsByQuarter[quarterYear].forEach((meeting) => {
+                     lines.push(`    - ${partnerLine(meeting)}`);
+                  });
+               });
+               lines.push('');
+            });
+         }
+
+         return lines.join('\n').trim() || 'No uncompleted meetings.';
+      });
+
+      const copy = async () => {
+         try {
+            await navigator.clipboard.writeText(plainText.value);
+            copied.value = true;
+            setTimeout(() => { copied.value = false; }, 2000);
+         } catch {
+            // Clipboard unavailable; the text is still selectable in the block.
+         }
+      };
+
       return {
          currentView,
-         groupedByQuarter,
-         groupedByShepherd
+         copied,
+         plainText,
+         copy,
       };
    },
 });
 </script>
 
 <style scoped>
-ul {
-   list-style-type: none;
-   padding-left: 1rem;
-}
-
-.q-btn-toggle {
-   margin-bottom: 1rem;
+.plaintext {
+   font-family: inherit;
+   white-space: pre-wrap;
+   word-break: break-word;
+   margin: 0;
+   padding: 0.75rem 1rem;
+   background: #f8f9fa;
+   border: 1px solid #e0e0e0;
+   border-radius: 6px;
+   font-size: 0.95rem;
+   line-height: 1.45;
+   user-select: text;
 }
 </style>
