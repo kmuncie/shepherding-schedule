@@ -23,3 +23,7 @@ a,
 @media (min-width: 1024px) {
 
 }
+
+/* Chips keep their default single-line height; long names are handled with
+   middle-ellipsis truncation via the MiddleTruncate component instead of
+   wrapping. */

@@ -22,6 +22,12 @@ export interface Person {
    meetings: Meeting[];
    latestCompletedMeeting?: Meeting;
    departed: boolean;
+   // When true, this person is never scheduled as a sheep (no visits to receive).
+   // A shepherd flagged this way still conducts visits to others.
+   excludeAsSheep?: boolean;
+   // Relative load multiplier used when this person shepherds: 1 is a normal
+   // share, higher takes proportionally more visits, 0 takes none. Undefined = 1.
+   shepherdWeight?: number;
 }
 
 const PEOPLE_STORAGE_KEY = "people";
@@ -140,6 +146,21 @@ export const usePeopleStore = defineStore("people", {
             localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
          }
       },
+      toggleExcludeAsSheep(id: string) {
+         const person = this.people.find((p) => p.id === id);
+         if (person) {
+            person.excludeAsSheep = !person.excludeAsSheep;
+            localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
+         }
+      },
+      setShepherdWeight(id: string, weight: number) {
+         const person = this.people.find((p) => p.id === id);
+         if (person) {
+            const value = Number(weight);
+            person.shepherdWeight = Number.isFinite(value) && value >= 0 ? value : 1;
+            localStorage.setItem(PEOPLE_STORAGE_KEY, JSON.stringify(markRaw(this.people)));
+         }
+      },
       addMeeting(
          shepherdId: string,
          sheepId: string,
@@ -176,6 +197,17 @@ export const usePeopleStore = defineStore("people", {
                JSON.stringify(markRaw(this.people))
             );
          }
+      },
+      removeMeetingsForBlock(year: number, quarters: number[]) {
+         this.people.forEach((person) => {
+            person.meetings = person.meetings.filter(
+               (m) => !(m.year === year && quarters.includes(m.quarter))
+            );
+         });
+         localStorage.setItem(
+            PEOPLE_STORAGE_KEY,
+            JSON.stringify(markRaw(this.people))
+         );
       },
       removeMeeting(shepherdId: string, meetingId: string) {
          const shepherd = this.people.find(

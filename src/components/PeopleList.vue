@@ -35,8 +35,33 @@
   :label="person.departed ? 'Departed' : 'Mark as Departed'"
   :title="person.departed ? 'This person is marked as departed. Click to mark as active.' : 'Mark this person as departed.'"
 />
+                     <q-chip
+  :outline="!person.excludeAsSheep"
+  :color="person.excludeAsSheep ? 'blue-grey-7' : 'grey-6'"
+  :text-color="person.excludeAsSheep ? 'white' : 'grey-9'"
+  size="xs"
+  :icon="person.excludeAsSheep ? 'block' : 'event_available'"
+  clickable
+  @click="toggleExcludeAsSheep(person.id)"
+  :label="person.excludeAsSheep ? 'No visits needed' : 'Receives visits'"
+  :title="person.excludeAsSheep ? 'This person is never scheduled to receive a visit. Click to include them.' : 'This person is scheduled to receive visits. Click to exclude them.'"
+/>
 
                   </p>
+                  <div v-if="person.role === 'shepherd'" class="row items-center q-gutter-sm q-mb-xs">
+                     <span class="text-caption text-grey-7">Shepherd weight</span>
+                     <q-input
+                        :model-value="person.shepherdWeight ?? 1"
+                        @update:model-value="(val) => setShepherdWeight(person.id, val)"
+                        type="number"
+                        dense
+                        outlined
+                        min="0"
+                        step="0.5"
+                        style="width: 90px"
+                        title="How much of the visit load this shepherd carries. 1 is a normal share; higher takes proportionally more, 0 takes none."
+                     />
+                  </div>
                   <!-- Display last meeting information -->
                   <div v-if="person.latestCompletedMeeting" class="text-caption q-mt-sm">
                      <q-icon name="event" size="xs" class="q-mr-xs" />
@@ -131,6 +156,15 @@ export default defineComponent({
          peopleStore.toggleRole(personId);
       };
 
+      const toggleExcludeAsSheep = (personId: string) => {
+         peopleStore.toggleExcludeAsSheep(personId);
+      };
+
+      const setShepherdWeight = (personId: string, weight: string | number | null) => {
+         const value = weight === null || weight === '' ? 1 : Number(weight);
+         peopleStore.setShepherdWeight(personId, value);
+      };
+
       const formatDate = (dateString: string | undefined) => {
          if (!dateString) return 'N/A';
          const date = new Date(dateString);
@@ -165,6 +199,8 @@ export default defineComponent({
          getSortedMeetings,
          toggleDepartedStatus,
          toggleRole,
+         toggleExcludeAsSheep,
+         setShepherdWeight,
          formatDate,
       };
    },

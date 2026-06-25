@@ -4,7 +4,6 @@
       <div class="text-h6 q-mb-md">📅 Bulk Meeting Generator</div>
 
       <div class="row q-gutter-md items-end">
-        <!-- Quarter Pair Selection -->
         <div class="col-auto">
           <q-option-group
             v-model="quarterPair"
@@ -14,7 +13,6 @@
           />
         </div>
 
-        <!-- Year Input -->
         <div class="col-auto">
           <q-input
             v-model.number="selectedYear"
@@ -26,25 +24,107 @@
           />
         </div>
 
-        <!-- Generate Button -->
         <div class="col-auto">
           <q-btn
-            @click="showConfirmDialog = true"
+            @click="generate"
             color="primary"
             size="lg"
             :disable="!canGenerate"
-            icon="event"
-            label="Generate Meetings"
+            icon="auto_fix_high"
+            label="Generate Draft"
+          />
+        </div>
+
+        <div class="col-auto" v-if="draft">
+          <q-btn
+            @click="reoptimize"
+            color="secondary"
+            size="lg"
+            icon="refresh"
+            label="Re-optimize"
           />
         </div>
       </div>
 
-      <!-- Preview Summary -->
-      <div v-if="previewSummary" class="q-mt-md text-caption text-grey-7">
-        {{ previewSummary }}
+      <div v-if="!canGenerate" class="q-mt-sm text-caption text-grey-7">
+        {{ blockedReason }}
       </div>
 
-      <!-- Results Display -->
+      <!-- Draft summary -->
+      <div v-if="draft" class="q-mt-md">
+        <q-banner dense class="bg-grey-2">
+          <span class="text-weight-medium">{{ draft.visits.length }}</span> visits ·
+          <span :class="repeatCount > 0 ? 'text-orange-9' : 'text-green-9'">
+            {{ repeatCount }} repeat{{ repeatCount === 1 ? '' : 's' }}
+          </span>
+          · load {{ loadSummary }}
+          <span v-if="draft.unassigned.length" class="text-negative">
+            · {{ draft.unassigned.length }} unassigned
+          </span>
+        </q-banner>
+
+        <q-markup-table flat dense class="q-mt-sm">
+          <thead>
+            <tr>
+              <th class="text-left">Person</th>
+              <th class="text-left">Shepherd</th>
+              <th class="text-left">Quarter</th>
+              <th class="text-left">Status</th>
+              <th class="text-center">Lock</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="visit in draft.visits" :key="visit.sheepId">
+              <td class="text-left">{{ personNameById(visit.sheepId) }}</td>
+              <td class="text-left" style="min-width: 160px">
+                <q-select
+                  dense
+                  options-dense
+                  emit-value
+                  map-options
+                  :model-value="visit.shepherdId"
+                  :options="shepherdOptions"
+                  @update:model-value="(id) => swapShepherd(visit, id)"
+                />
+              </td>
+              <td class="text-left">Q{{ visit.quarter }}</td>
+              <td class="text-left">
+                <span :class="visit.reason.startsWith('Fresh') ? 'text-green-9' : 'text-orange-9'">
+                  {{ visit.reason }}
+                </span>
+              </td>
+              <td class="text-center">
+                <q-btn
+                  flat
+                  round
+                  dense
+                  :icon="visit.locked ? 'lock' : 'lock_open'"
+                  :color="visit.locked ? 'primary' : 'grey-5'"
+                  @click="toggleLock(visit)"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </q-markup-table>
+
+        <div class="q-mt-md">
+          <q-btn
+            @click="onCommit"
+            color="positive"
+            icon="event_available"
+            label="Commit Schedule"
+            :loading="isCommitting"
+          />
+          <q-btn
+            flat
+            class="q-ml-sm"
+            color="grey"
+            label="Discard Draft"
+            @click="draft = null"
+          />
+        </div>
+      </div>
+
       <div v-if="lastResult" class="q-mt-md">
         <q-banner :class="lastResult.success ? 'bg-positive text-white' : 'bg-negative text-white'">
           <template v-slot:avatar>
@@ -53,60 +133,24 @@
           {{ lastResult.message }}
         </q-banner>
       </div>
-
-      <!-- Generation Log Table -->
-      <div v-if="generationLog.length" class="q-mt-md">
-        <q-btn
-          flat
-          color="primary"
-          :icon="showLog ? 'expand_less' : 'expand_more'"
-          @click="showLog = !showLog"
-          class="q-mb-sm"
-        >
-          {{ showLog ? 'Hide Log' : 'Show Log' }}
-        </q-btn>
-        <q-slide-transition>
-          <div v-show="showLog">
-            <q-table
-              :rows="generationLog"
-              :columns="[
-                { name: 'person', label: 'Person', field: 'person', align: 'left' },
-                { name: 'shepherd', label: 'Shepherd', field: 'shepherd', align: 'left' },
-                { name: 'quarter', label: 'Quarter', field: 'quarter', align: 'left' },
-                { name: 'year', label: 'Year', field: 'year', align: 'left' }
-              ]"
-              row-key="person+quarter+year"
-              flat
-              dense
-              hide-bottom
-              :pagination="{ rowsPerPage: 0 }"
-            />
-          </div>
-        </q-slide-transition>
-      </div>
     </q-card-section>
   </q-card>
 
-  <!-- Confirmation Dialog -->
-  <q-dialog v-model="showConfirmDialog">
-    <q-card style="min-width: 350px">
+  <!-- Replace-or-augment dialog when the block already has meetings -->
+  <q-dialog v-model="showCommitDialog">
+    <q-card style="min-width: 360px">
       <q-card-section>
-        <div class="text-h6">Confirm Meeting Generation</div>
+        <div class="text-h6">Block already has meetings</div>
       </q-card-section>
-
       <q-card-section class="q-pt-none">
-        {{ confirmationMessage }}
+        {{ existingCount }} meeting{{ existingCount === 1 ? '' : 's' }} already exist for
+        {{ quarterPair === 'q1-q2' ? 'Q1 & Q2' : 'Q3 & Q4' }} {{ selectedYear }}.
+        Replace them with this draft, or add the draft alongside them?
       </q-card-section>
-
       <q-card-actions align="right">
         <q-btn flat label="Cancel" color="grey" v-close-popup />
-        <q-btn
-          @click="generateMeetings"
-          label="Generate"
-          color="primary"
-          v-close-popup
-          :loading="isGenerating"
-        />
+        <q-btn flat label="Add alongside" color="primary" @click="commit(false)" v-close-popup />
+        <q-btn label="Replace" color="negative" @click="commit(true)" v-close-popup />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -114,7 +158,10 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
-import { usePeopleStore, type Person } from '@/stores/people';
+import { usePeopleStore } from '@/stores/people';
+import { usePeopleById } from '@/composables/usePeopleById';
+import { generateSchedule, type LockedVisit } from '@/scheduling/scheduler';
+import type { ScheduleDraft, ProposedVisit } from '@/scheduling/types';
 
 interface GenerationResult {
   success: boolean;
@@ -124,176 +171,150 @@ interface GenerationResult {
 export default defineComponent({
   name: 'BulkMeetingGenerator',
   setup() {
-  const showLog = ref(true);
     const peopleStore = usePeopleStore();
+    const { personNameById } = usePeopleById();
+
     const quarterPair = ref('q1-q2');
     const selectedYear = ref(new Date().getFullYear() + 1);
-    const showConfirmDialog = ref(false);
-    const isGenerating = ref(false);
+    const draft = ref<ScheduleDraft | null>(null);
     const lastResult = ref<GenerationResult | null>(null);
-  // Log of generated meetings for user verification
-  const generationLog = ref<Array<{ person: string; shepherd: string; quarter: number; year: number }>>([]);
+    const isCommitting = ref(false);
+    const showCommitDialog = ref(false);
 
     const quarterPairOptions = [
       { label: 'Q1 & Q2', value: 'q1-q2' },
-      { label: 'Q3 & Q4', value: 'q3-q4' }
+      { label: 'Q3 & Q4', value: 'q3-q4' },
     ];
 
     const activePeople = computed(() =>
-      peopleStore.people.filter(p => !p.departed)
+      peopleStore.people.filter((p) => !p.departed)
+    );
+    const activeShepherds = computed(() =>
+      activePeople.value.filter((p) => p.role === 'shepherd')
+    );
+    const shepherdOptions = computed(() =>
+      activeShepherds.value
+        .map((s) => ({ label: s.name, value: s.id }))
+        .sort((a, b) => a.label.localeCompare(b.label))
     );
 
-    const availableShepherds = computed(() =>
-      activePeople.value.filter(p => p.role === 'shepherd')
+    const canGenerate = computed(
+      () => activePeople.value.length >= 2 && activeShepherds.value.length >= 1
     );
-
-    const canGenerate = computed(() =>
-      activePeople.value.length >= 2 &&
-      availableShepherds.value.length >= 1 &&
-      selectedYear.value >= new Date().getFullYear()
-    );
-
-    const previewSummary = computed(() => {
-      if (!canGenerate.value) {
-        if (activePeople.value.length < 2) return 'Need at least 2 active people';
-        if (availableShepherds.value.length < 1) return 'Need at least 1 shepherd';
-        return '';
-      }
-
-      const quarters = quarterPair.value === 'q1-q2' ? 'Q1 & Q2' : 'Q3 & Q4';
-      return `Will create ${activePeople.value.length} meetings for ${quarters} ${selectedYear.value}`;
+    const blockedReason = computed(() => {
+      if (activePeople.value.length < 2) return 'Need at least 2 active people';
+      if (activeShepherds.value.length < 1) return 'Need at least 1 shepherd';
+      return '';
     });
 
-    const confirmationMessage = computed(() => {
-      const quarters = quarterPair.value === 'q1-q2' ? 'Q1 & Q2' : 'Q3 & Q4';
-      return `Generate ${activePeople.value.length} meetings for ${quarters} ${selectedYear.value}?
+    const quartersOf = (): [number, number] =>
+      quarterPair.value === 'q1-q2' ? [1, 2] : [3, 4];
 
-This will assign each active person to exactly one meeting, evenly distributed between the two quarters.`;
-    });
-
-    // Build shepherd history map: personId -> Set of shepherdIds who've shepherded them
-    const getShepherdHistory = (person: Person): Set<string> => {
-      return new Set(
-        person.meetings
-          .filter(m => m.sheepId === person.id && m.completed)
-          .map(m => m.shepherdId)
-      );
-    };
-
-    // Shuffle array using Fisher-Yates algorithm
-    const shuffleArray = (array: any[]): any[] => {
-      const shuffled = [...array];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      return shuffled;
-    };
-
-    // Find best shepherd for a person, avoiding previous shepherds if possible
-    const findBestShepherd = (person: Person, shepherdHistory: Set<string>, shepherdAssignmentCounts: Map<string, number>): string | null => {
-      // Get shepherds who haven't shepherded this person before
-      const newShepherds = availableShepherds.value.filter(s =>
-        s.id !== person.id && !shepherdHistory.has(s.id)
-      );
-
-      let candidateShepherds = newShepherds.length > 0 ? newShepherds :
-        availableShepherds.value.filter(s => s.id !== person.id);
-
-      if (candidateShepherds.length === 0) return null;
-
-      // Sort by fewest assignments in this generation, then randomly
-      candidateShepherds.sort((a, b) => {
-        const aCount = shepherdAssignmentCounts.get(a.id) || 0;
-        const bCount = shepherdAssignmentCounts.get(b.id) || 0;
-        if (aCount !== bCount) return aCount - bCount;
-        return Math.random() - 0.5; // Random tiebreaker
-      });
-
-      return candidateShepherds[0].id;
-    };
-
-    const generateMeetings = async () => {
-      isGenerating.value = true;
+    const generate = () => {
       lastResult.value = null;
+      draft.value = generateSchedule({
+        people: peopleStore.people,
+        year: selectedYear.value,
+        quarters: quartersOf(),
+      });
+    };
 
-      try {
-        const quarters = quarterPair.value === 'q1-q2' ? [1, 2] : [3, 4];
-        const shuffledPeople = shuffleArray(activePeople.value);
+    const locksFromDraft = (): LockedVisit[] => {
+      if (!draft.value) return [];
+      return draft.value.visits
+        .filter((v) => v.locked)
+        .map((v) => ({
+          sheepId: v.sheepId,
+          shepherdId: v.shepherdId,
+          quarter: v.quarter,
+        }));
+    };
 
-        // Split people evenly between quarters
-        const halfPoint = Math.ceil(shuffledPeople.length / 2);
-        const q1People = shuffledPeople.slice(0, halfPoint);
-        const q2People = shuffledPeople.slice(halfPoint);
+    const reoptimize = () => {
+      lastResult.value = null;
+      draft.value = generateSchedule({
+        people: peopleStore.people,
+        year: selectedYear.value,
+        quarters: quartersOf(),
+        locks: locksFromDraft(),
+      });
+    };
 
-        const quarterAssignments = [
-          { quarter: quarters[0], people: q1People },
-          { quarter: quarters[1], people: q2People }
-        ];
+    const toggleLock = (visit: ProposedVisit) => {
+      visit.locked = !visit.locked;
+    };
 
-        let meetingsCreated = 0;
-        let failedAssignments = 0;
-        const shepherdAssignmentCounts = new Map<string, number>();
+    // Manual swap pins the choice so re-optimize keeps it.
+    const swapShepherd = (visit: ProposedVisit, shepherdId: string) => {
+      visit.shepherdId = shepherdId;
+      visit.locked = true;
+      visit.reason = 'Manual choice';
+    };
 
-        // Clear previous log
-        generationLog.value = [];
+    const repeatCount = computed(
+      () => draft.value?.visits.filter((v) => !v.reason.startsWith('Fresh')).length ?? 0
+    );
 
-        // Generate meetings for each quarter
-        for (const assignment of quarterAssignments) {
-          for (const person of assignment.people) {
-            const shepherdHistory = getShepherdHistory(person);
-            const shepherdId = findBestShepherd(person, shepherdHistory, shepherdAssignmentCounts);
+    const loadSummary = computed(() => {
+      if (!draft.value) return '';
+      const counts = new Map<string, number>();
+      for (const v of draft.value.visits) {
+        counts.set(v.shepherdId, (counts.get(v.shepherdId) ?? 0) + 1);
+      }
+      const values = [...counts.values()];
+      if (values.length === 0) return '';
+      return `${Math.min(...values)}–${Math.max(...values)} per shepherd`;
+    });
 
-            if (shepherdId) {
-              peopleStore.addMeeting(
-                shepherdId,
-                person.id,
-                assignment.quarter,
-                selectedYear.value
-              );
-
-              // Add to generation log
-              const shepherd = availableShepherds.value.find(s => s.id === shepherdId);
-              generationLog.value.push({
-                person: person.name,
-                shepherd: shepherd ? shepherd.name : shepherdId,
-                quarter: assignment.quarter,
-                year: selectedYear.value
-              });
-
-              // Update shepherd assignment count
-              shepherdAssignmentCounts.set(
-                shepherdId,
-                (shepherdAssignmentCounts.get(shepherdId) || 0) + 1
-              );
-
-              meetingsCreated++;
-            } else {
-              failedAssignments++;
-            }
+    const existingCount = computed(() => {
+      const [q1, q2] = quartersOf();
+      const ids = new Set<string>();
+      for (const person of peopleStore.people) {
+        for (const m of person.meetings) {
+          if (m.year === selectedYear.value && (m.quarter === q1 || m.quarter === q2)) {
+            ids.add(m.id);
           }
         }
+      }
+      return ids.size;
+    });
 
-        // Show results
-        if (failedAssignments === 0) {
-          lastResult.value = {
-            success: true,
-            message: `Successfully created ${meetingsCreated} meetings for ${quarterPair.value === 'q1-q2' ? 'Q1 & Q2' : 'Q3 & Q4'} ${selectedYear.value}`
-          };
-        } else {
-          lastResult.value = {
-            success: false,
-            message: `Created ${meetingsCreated} meetings, but ${failedAssignments} assignments failed (no available shepherds)`
-          };
+    const onCommit = () => {
+      if (existingCount.value > 0) {
+        showCommitDialog.value = true;
+      } else {
+        commit(false);
+      }
+    };
+
+    const commit = (replace: boolean) => {
+      if (!draft.value) return;
+      isCommitting.value = true;
+      try {
+        if (replace) {
+          peopleStore.removeMeetingsForBlock(selectedYear.value, quartersOf());
         }
-
+        let created = 0;
+        for (const v of draft.value.visits) {
+          peopleStore.addMeeting(v.shepherdId, v.sheepId, v.quarter, v.year);
+          created++;
+        }
+        lastResult.value = {
+          success: true,
+          message: `Committed ${created} meetings for ${
+            quarterPair.value === 'q1-q2' ? 'Q1 & Q2' : 'Q3 & Q4'
+          } ${selectedYear.value}`,
+        };
+        draft.value = null;
       } catch (error) {
         lastResult.value = {
           success: false,
-          message: `Error generating meetings: ${error instanceof Error ? error.message : 'Unknown error'}`
+          message: `Error committing: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
         };
       } finally {
-        isGenerating.value = false;
+        isCommitting.value = false;
       }
     };
 
@@ -301,18 +322,24 @@ This will assign each active person to exactly one meeting, evenly distributed b
       quarterPair,
       quarterPairOptions,
       selectedYear,
-      canGenerate,
-      previewSummary,
-      confirmationMessage,
-      showConfirmDialog,
-      isGenerating,
+      draft,
       lastResult,
-      generateMeetings,
-      activePeople,
-      availableShepherds,
-      generationLog,
-      showLog
+      isCommitting,
+      showCommitDialog,
+      shepherdOptions,
+      canGenerate,
+      blockedReason,
+      repeatCount,
+      loadSummary,
+      existingCount,
+      personNameById,
+      generate,
+      reoptimize,
+      toggleLock,
+      swapShepherd,
+      onCommit,
+      commit,
     };
-  }
+  },
 });
 </script>
